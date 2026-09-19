@@ -1,0 +1,25 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+.agents/
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Flutter & Dart
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# OS & Editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
