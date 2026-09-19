@@ -60,3 +60,28 @@ create table if not exists reports (
   sent_at timestamptz,
   created_at timestamptz default now()
 );
+
+-- Enable Row Level Security
+alter table apps enable row level security;
+alter table app_metrics enable row level security;
+alter table app_analysis enable row level security;
+alter table reports enable row level security;
+
+-- Policies for public reading (anon / authenticated)
+create policy "Allow public read on apps" on apps for select using (true);
+create policy "Allow public read on app_metrics" on app_metrics for select using (true);
+create policy "Allow public read on app_analysis" on app_analysis for select using (true);
+create policy "Allow public read on reports" on reports for select using (true);
+
+-- Policies for ingestion & pipeline writing (anon key)
+create policy "Allow public insert on apps" on apps for insert with check (true);
+create policy "Allow public update on apps" on apps for update using (true) with check (true);
+
+create policy "Allow public insert on app_metrics" on app_metrics for insert with check (true);
+create policy "Allow public update on app_metrics" on app_metrics for update using (true) with check (true);
+
+create policy "Allow public insert on app_analysis" on app_analysis for insert with check (true);
+create policy "Allow public update on app_analysis" on app_analysis for update using (true) with check (true);
+
+create policy "Allow public insert on reports" on reports for insert with check (true);
+create policy "Allow public update on reports" on reports for update using (true) with check (true);
