@@ -10,10 +10,10 @@ class StripeConfig {
   // ---------------------------------------------------------------------------
   
   /// Pro Builder Monthly subscription link ($29/mo)
-  static const String defaultProMonthlyLink = 'https://buy.stripe.com/test_pro_monthly_placeholder';
+  static const String defaultProMonthlyLink = 'https://buy.stripe.com/test_00w28rcLA0Gy2rbgCP4ko00';
 
   /// Pro Builder Annual subscription link ($279/year)
-  static const String defaultProAnnualLink = 'https://buy.stripe.com/test_pro_annual_placeholder';
+  static const String defaultProAnnualLink = 'https://buy.stripe.com/test_6oUeVdfXM9d48Pz2LZ4ko01';
 
   /// Agency & Team Monthly subscription link ($79/mo)
   static const String defaultAgencyLink = 'https://buy.stripe.com/test_agency_placeholder';

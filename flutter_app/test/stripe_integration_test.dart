@@ -38,8 +38,8 @@ void main() {
     });
 
     test('isConfigured detects placeholder vs live links', () {
-      // With default placeholder, isConfigured should be false
-      expect(StripeConfig.isConfigured, isFalse);
+      // With active links configured, isConfigured should be true
+      expect(StripeConfig.isConfigured, isTrue);
     });
   });
 
