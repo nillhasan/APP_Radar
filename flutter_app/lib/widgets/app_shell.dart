@@ -258,6 +258,10 @@ class _AppShellState extends State<AppShell> {
             onPressed: () => PricingModal.show(
               context,
               subscriptionService: widget.subscriptionService,
+              onRequiresAuth: () => AuthModal.show(
+                context,
+                authService: widget.authService,
+              ),
             ),
             icon: const Icon(Icons.bolt, size: 15, color: AppColors.aiPurple),
             label: const Text('Upgrade Pro', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.aiPurple)),
@@ -332,7 +336,14 @@ class _AppShellState extends State<AppShell> {
         } else if (val == 'settings') {
           _navigateToTab(9); // Settings
         } else if (val == 'pricing') {
-          PricingModal.show(context, subscriptionService: widget.subscriptionService);
+          PricingModal.show(
+            context,
+            subscriptionService: widget.subscriptionService,
+            onRequiresAuth: () => AuthModal.show(
+              context,
+              authService: widget.authService,
+            ),
+          );
         } else if (val == 'toggle_plan') {
           widget.subscriptionService.toggleTier();
           if (mounted) {
@@ -557,7 +568,14 @@ class _AppShellState extends State<AppShell> {
           padding: const EdgeInsets.all(16),
           child: InkWell(
             onTap: widget.subscriptionService.isFree
-                ? () => PricingModal.show(context, subscriptionService: widget.subscriptionService)
+                ? () => PricingModal.show(
+                      context,
+                      subscriptionService: widget.subscriptionService,
+                      onRequiresAuth: () => AuthModal.show(
+                        context,
+                        authService: widget.authService,
+                      ),
+                    )
                 : null,
             borderRadius: BorderRadius.circular(8),
             child: Container(

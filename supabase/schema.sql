@@ -110,3 +110,35 @@ create policy "Users can update own watchlist" on user_watchlists
 
 create policy "Users can delete own watchlist" on user_watchlists
   for delete using (auth.uid() = user_id);
+
+-- User Subscriptions & Stripe Billing Sync
+create table if not exists user_subscriptions (
+  user_id uuid references auth.users(id) on delete cascade primary key,
+  tier text not null default 'free' check (tier in ('free', 'pro', 'agency')),
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  stripe_price_id text,
+  status text not null default 'active',
+  current_period_end timestamptz,
+  cancel_at_period_end boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_user_subscriptions_stripe_customer 
+  on user_subscriptions(stripe_customer_id);
+
+create index if not exists idx_user_subscriptions_stripe_sub 
+  on user_subscriptions(stripe_subscription_id);
+
+alter table user_subscriptions enable row level security;
+
+create policy "Users can view own subscription" on user_subscriptions
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own subscription" on user_subscriptions
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own subscription" on user_subscriptions
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+

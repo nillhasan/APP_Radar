@@ -77,11 +77,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('\$23'), findsOneWidget);
 
-      // Tap Upgrade
-      final upgradeBtn = find.text('Upgrade to Pro Builder');
-      expect(upgradeBtn, findsOneWidget);
-      await tester.tap(upgradeBtn);
-      await tester.pump(const Duration(milliseconds: 700));
+      // Tap instant dev upgrade
+      final demoBtn = find.text('Simulate instant Pro (Demo Mode)');
+      expect(demoBtn, findsOneWidget);
+      await tester.tap(demoBtn);
+      await tester.pumpAndSettle();
 
       expect(sub.isPro, true);
     });

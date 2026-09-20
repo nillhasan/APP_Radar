@@ -59,7 +59,10 @@ class _AppRadarAppState extends State<AppRadarApp> {
     } catch (_) {}
 
     _authService = AuthService(client: supabaseClient);
-    _subscriptionService = SubscriptionService();
+    _subscriptionService = SubscriptionService(
+      supabaseClient: supabaseClient,
+      authService: _authService,
+    );
 
     final mockRepo = MockAppRepository();
     if (supabaseClient != null) {

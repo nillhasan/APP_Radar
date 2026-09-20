@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../core/config/stripe_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/subscription/subscription_service.dart';
 
 class PricingModal extends StatefulWidget {
   final SubscriptionService subscriptionService;
   final String? featureTrigger;
+  final VoidCallback? onRequiresAuth;
 
   const PricingModal({
     super.key,
     required this.subscriptionService,
     this.featureTrigger,
+    this.onRequiresAuth,
   });
 
   static Future<void> show(
     BuildContext context, {
     required SubscriptionService subscriptionService,
     String? featureTrigger,
+    VoidCallback? onRequiresAuth,
   }) {
     return showDialog(
       context: context,
@@ -26,6 +30,7 @@ class PricingModal extends StatefulWidget {
         child: PricingModal(
           subscriptionService: subscriptionService,
           featureTrigger: featureTrigger,
+          onRequiresAuth: onRequiresAuth,
         ),
       ),
     );
@@ -59,137 +64,146 @@ class _PricingModalState extends State<PricingModal> {
               ),
             ],
           ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.aiPurpleLight,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.aiPurple.withValues(alpha: 0.2)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.auto_awesome, size: 14, color: AppColors.aiPurple),
-                            SizedBox(width: 6),
-                            Text(
-                              'SCALE YOUR APP EMPIRE',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.aiPurple,
-                                letterSpacing: 0.5,
+                // Header Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.featureTrigger != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryLight,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.lock_open, size: 14, color: AppColors.primary),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    widget.featureTrigger!,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
+                          const Text(
+                            'Unlock Full Market Intelligence & AI Blueprints',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Get instant access to deep architectural teardowns, 14-section specifications, and daily market intelligence.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Unlock Full Market Intelligence & AI Blueprints',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        widget.featureTrigger ??
-                            'Discover breakout opportunities, generate complete 14-section architectural blueprints, and track unlimited apps.',
-                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20, color: AppColors.textSecondary),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Billing Toggle (Monthly vs Annual)
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildToggleOption(label: 'Monthly Billing', isSelected: !_isAnnual, onSelect: () => setState(() => _isAnnual = false)),
-                    _buildToggleOption(
-                      label: 'Annual Billing',
-                      isSelected: _isAnnual,
-                      badge: 'SAVE 20%',
-                      onSelect: () => setState(() => _isAnnual = true),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.textMuted),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-            // Pricing Cards Grid
-            if (isDesktop)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: _buildFreeCard()),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildProCard()),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildAgencyCard()),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  _buildProCard(),
-                  const SizedBox(height: 16),
-                  _buildFreeCard(),
-                  const SizedBox(height: 16),
-                  _buildAgencyCard(),
-                ],
-              ),
-            const SizedBox(height: 20),
+                // Monthly vs Annual Toggle
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildToggleOption(
+                          label: 'Monthly Billing',
+                          isSelected: !_isAnnual,
+                          onSelect: () => setState(() => _isAnnual = false),
+                        ),
+                        _buildToggleOption(
+                          label: 'Annual Billing',
+                          isSelected: _isAnnual,
+                          badge: 'SAVE 20%',
+                          onSelect: () => setState(() => _isAnnual = true),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
 
-            // Footer assurance
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.verified_user_outlined, size: 14, color: AppColors.textMuted),
-                SizedBox(width: 6),
-                Text(
-                  'Cancel anytime with 1 click. No questions asked.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                // Tier Cards Grid / Column
+                if (isDesktop)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildFreeCard()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildProCard()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildAgencyCard()),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      _buildProCard(),
+                      const SizedBox(height: 16),
+                      _buildFreeCard(),
+                      const SizedBox(height: 16),
+                      _buildAgencyCard(),
+                    ],
+                  ),
+                const SizedBox(height: 20),
+
+                // Footer assurance
+                const Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    Icon(Icons.verified_user_outlined, size: 14, color: AppColors.textMuted),
+                    Text(
+                      'Secured by Stripe. Cancel anytime with 1 click. No questions asked.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -212,7 +226,7 @@ class _PricingModalState extends State<PricingModal> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -220,13 +234,14 @@ class _PricingModalState extends State<PricingModal> {
               : null,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                color: isSelected ? AppColors.textPrimary : AppColors.textMuted,
               ),
             ),
             if (badge != null) ...[
@@ -239,7 +254,11 @@ class _PricingModalState extends State<PricingModal> {
                 ),
                 child: Text(
                   badge,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.success),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.success,
+                  ),
                 ),
               ),
             ],
@@ -281,7 +300,9 @@ class _PricingModalState extends State<PricingModal> {
                 ? null
                 : () {
                     widget.subscriptionService.downgradeToFree();
-                    Navigator.of(context).pop();
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Switched to Free tier for testing.')),
                     );
@@ -362,41 +383,64 @@ class _PricingModalState extends State<PricingModal> {
           ),
           Text(billingNote, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 18),
-          FilledButton(
-            onPressed: isCurrent || _isUpgrading
-                ? null
-                : () async {
-                    final navigator = Navigator.of(context);
-                    final messenger = ScaffoldMessenger.of(context);
-                    setState(() => _isUpgrading = true);
-                    await Future.delayed(const Duration(milliseconds: 600));
-                    widget.subscriptionService.upgradeToPro();
-                    if (mounted) {
-                      navigator.pop();
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          backgroundColor: AppColors.primary,
-                          content: Text('🎉 Welcome to Pro Builder! All features are unlocked.'),
-                          duration: Duration(seconds: 4),
-                        ),
-                      );
-                    }
-                  },
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 44),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+
+          // Main Pro Action: Stripe Checkout or Customer Portal
+          if (isCurrent)
+            OutlinedButton.icon(
+              onPressed: () => widget.subscriptionService.launchCustomerPortal(),
+              icon: const Icon(Icons.credit_card, size: 16, color: AppColors.primary),
+              label: const Text('Manage Subscription (Stripe Portal)'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            )
+          else
+            FilledButton.icon(
+              onPressed: _isUpgrading ? null : _handleStripeCheckout,
+              icon: _isUpgrading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.bolt, size: 16),
+              label: Text(_isUpgrading ? 'Connecting Stripe...' : 'Upgrade to Pro Builder'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
-            child: _isUpgrading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : Text(isCurrent ? 'Active Plan (Pro)' : 'Upgrade to Pro Builder'),
+
+          // Instant Dev Mode Switcher for friction-free local testing
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                widget.subscriptionService.upgradeToPro();
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.primary,
+                    content: Text('🎉 Dev Mode: Instant Pro Builder unlocked for testing!'),
+                    duration: Duration(seconds: 4),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.science_outlined, size: 13, color: AppColors.textMuted),
+              label: const Text(
+                'Simulate instant Pro (Demo Mode)',
+                style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+              ),
+            ),
           ),
-          const SizedBox(height: 24),
+
+          const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
           _featureRow('Unlimited AI App Teardowns', isIncluded: true, isHighlight: true),
@@ -408,6 +452,45 @@ class _PricingModalState extends State<PricingModal> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleStripeCheckout() async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _isUpgrading = true);
+    final launched = await widget.subscriptionService.launchStripeCheckout(
+      isAnnual: _isAnnual,
+    );
+    if (mounted) setState(() => _isUpgrading = false);
+
+    if (!launched) {
+      // User is not logged in
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      if (widget.onRequiresAuth != null) {
+        widget.onRequiresAuth!();
+      } else {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Please sign in first so your Pro subscription can be linked to your account.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } else {
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      messenger.showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.primary,
+          content: Text('💳 Stripe Checkout opened in a new tab! Complete payment to activate Pro Builder.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   Widget _buildAgencyCard() {
@@ -440,18 +523,45 @@ class _PricingModalState extends State<PricingModal> {
           Text(billingNote, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 18),
           OutlinedButton(
-            onPressed: () {
-              widget.subscriptionService.upgradeToPro();
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('🎉 Agency Plan Activated!')),
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              final launched = await widget.subscriptionService.launchStripeCheckout(
+                isAnnual: false,
+                customBaseUrl: StripeConfig.agencyLink,
               );
+              if (!launched) {
+                if (mounted) {
+                  if (navigator.canPop()) {
+                    navigator.pop();
+                  }
+                  if (widget.onRequiresAuth != null) {
+                    widget.onRequiresAuth!();
+                  } else {
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Please sign in first to subscribe to the Agency Plan.')),
+                    );
+                  }
+                }
+              } else {
+                if (mounted) {
+                  if (navigator.canPop()) {
+                    navigator.pop();
+                  }
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppColors.primary,
+                      content: Text('💳 Stripe Agency Checkout opened in a new tab!'),
+                    ),
+                  );
+                }
+              }
             },
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 44),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Contact for Seats'),
+            child: const Text('Subscribe to Agency Plan'),
           ),
           const SizedBox(height: 24),
           const Divider(),
