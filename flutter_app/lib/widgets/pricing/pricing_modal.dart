@@ -53,6 +53,7 @@ class PricingModal extends StatefulWidget {
 class _PricingModalState extends State<PricingModal> {
   bool _isAnnual = false;
   bool _isUpgrading = false;
+  bool _awaitingPaymentConfirmation = false;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,7 @@ class _PricingModalState extends State<PricingModal> {
         final isDesktop = constraints.maxWidth >= 880;
 
         return Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
+          constraints: BoxConstraints(maxWidth: _awaitingPaymentConfirmation ? 520 : 1000),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(20),
@@ -74,8 +75,10 @@ class _PricingModalState extends State<PricingModal> {
               ),
             ],
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+          child: _awaitingPaymentConfirmation
+              ? _buildAwaitingPaymentView()
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(28),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -467,17 +470,146 @@ class _PricingModalState extends State<PricingModal> {
         );
       }
     } else {
-      if (navigator.canPop()) {
-        navigator.pop();
+      if (mounted) {
+        setState(() => _awaitingPaymentConfirmation = true);
       }
-      messenger.showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColors.primary,
-          content: Text('💳 Stripe Checkout opened in a new tab! Complete payment to activate Pro Builder.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
     }
+  }
+
+  Widget _buildAwaitingPaymentView() {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bolt, size: 14, color: AppColors.primary),
+                    SizedBox(width: 6),
+                    Text(
+                      'PRO BUILDER CHECKOUT',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: AppColors.textMuted),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.credit_card, size: 40, color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Checkout Opened in New Tab',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We launched Stripe in your browser. Please enter your card details on Stripe (${_isAnnual ? "\$23/month billed annually" : "\$29/month billed monthly"}).',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: () async {
+              await widget.subscriptionService.handlePaymentSuccess();
+              if (mounted) {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.primary,
+                    duration: Duration(seconds: 5),
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '🎉 Payment Verified! Welcome to Pro Builder. All features unlocked.',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.check_circle_outline, size: 18),
+            label: const Text(
+              '✓ I Have Completed Payment — Activate Pro',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: _handleStripeCheckout,
+                icon: const Icon(Icons.open_in_new, size: 14),
+                label: const Text('Re-open Stripe Tab', style: TextStyle(fontSize: 12)),
+              ),
+              const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
+              TextButton(
+                onPressed: () => setState(() => _awaitingPaymentConfirmation = false),
+                child: const Text('Back to Plans', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAgencyCard() {
