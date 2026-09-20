@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
-    "pipeline": "node --env-file-if-exists=.env src/live_pipeline.js",
+    "pipeline": "node src/live_pipeline.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

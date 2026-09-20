@@ -1,5 +1,10 @@
 // AppRadar Dual-Store Telemetry Scraper & Gemini AI Opportunity Engine
 // Queries Apple App Store & Google Play Store in real-time
+import fs from 'fs';
+if (fs.existsSync('.env') && typeof process.loadEnvFile === 'function') {
+  try { process.loadEnvFile('.env'); } catch {}
+}
+
 import { createClient } from '@supabase/supabase-js';
 import gplay from 'google-play-scraper';
 import { Resend } from 'resend';
