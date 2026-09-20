@@ -16,7 +16,7 @@ class StripeConfig {
   static const String defaultProAnnualLink = 'https://buy.stripe.com/test_6oUeVdfXM9d48Pz2LZ4ko01';
 
   /// Agency & Team Monthly subscription link ($79/mo)
-  static const String defaultAgencyLink = 'https://buy.stripe.com/test_agency_placeholder';
+  static const String defaultAgencyLink = '';
 
   /// Stripe Customer Billing Portal link (Stripe Dashboard -> Settings -> Customer portal)
   static const String defaultCustomerPortalLink = 'https://billing.stripe.com/p/login/test_placeholder';

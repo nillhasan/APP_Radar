@@ -545,6 +545,19 @@ class _PricingModalState extends State<PricingModal> {
           const SizedBox(height: 18),
           OutlinedButton(
             onPressed: () async {
+              if (StripeConfig.agencyLink.isEmpty || StripeConfig.agencyLink.contains('placeholder')) {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('🏢 Agency Plan inquiry sent! For custom team seats, contact support or choose Pro Builder.'),
+                    duration: Duration(seconds: 4),
+                  ),
+                );
+                return;
+              }
+
               final navigator = Navigator.of(context);
               final messenger = ScaffoldMessenger.of(context);
               final launched = await widget.subscriptionService.launchStripeCheckout(
@@ -582,7 +595,7 @@ class _PricingModalState extends State<PricingModal> {
               minimumSize: const Size(double.infinity, 44),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Subscribe to Agency Plan'),
+            child: const Text('Contact for Custom Seats'),
           ),
           const SizedBox(height: 24),
           const Divider(),
