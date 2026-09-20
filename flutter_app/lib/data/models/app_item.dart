@@ -54,6 +54,11 @@ class AppItem {
   final bool isWatchlisted;
   final String notes;
   final NegativeReviewMining? negativeReviews;
+  final String? appUrl;
+  final double price;
+  final int rankDelta;
+  final Map<String, double>? regionalBreakdown;
+  final List<String> competitorIds;
 
   const AppItem({
     required this.id,
@@ -86,6 +91,11 @@ class AppItem {
     this.isWatchlisted = false,
     this.notes = '',
     this.negativeReviews,
+    this.appUrl,
+    this.price = 0.0,
+    this.rankDelta = 0,
+    this.regionalBreakdown,
+    this.competitorIds = const [],
   });
 
   AppItem copyWith({
@@ -94,6 +104,11 @@ class AppItem {
     NegativeReviewMining? negativeReviews,
     String? iconUrl,
     List<String>? screenshots,
+    String? appUrl,
+    double? price,
+    int? rankDelta,
+    Map<String, double>? regionalBreakdown,
+    List<String>? competitorIds,
   }) {
     return AppItem(
       id: id,
@@ -126,6 +141,11 @@ class AppItem {
       isWatchlisted: isWatchlisted ?? this.isWatchlisted,
       notes: notes ?? this.notes,
       negativeReviews: negativeReviews ?? this.negativeReviews,
+      appUrl: appUrl ?? this.appUrl,
+      price: price ?? this.price,
+      rankDelta: rankDelta ?? this.rankDelta,
+      regionalBreakdown: regionalBreakdown ?? this.regionalBreakdown,
+      competitorIds: competitorIds ?? this.competitorIds,
     );
   }
 }

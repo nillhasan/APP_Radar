@@ -137,6 +137,18 @@ class SupabaseAppRepository implements AppRepository {
           ['Overview Screen', 'Feature Detail', 'Export Flow'],
       isWatchlisted: false,
       notes: '',
+      appUrl: json['app_url'] as String? ?? 'https://apps.apple.com',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      rankDelta: (metrics['rank_delta'] as num?)?.toInt() ?? 2,
+      regionalBreakdown: (json['regional_breakdown'] is Map)
+          ? Map<String, double>.from(
+              (json['regional_breakdown'] as Map).map(
+                (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+              ),
+            )
+          : const {'US': 0.45, 'UK': 0.18, 'DE': 0.14, 'JP': 0.12, 'Other': 0.11},
+      competitorIds: (json['competitor_ids'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+          const ['app_1', 'app_2', 'app_3'],
     );
   }
 

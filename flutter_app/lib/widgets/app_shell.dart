@@ -105,12 +105,21 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
+  List<AppItem> _cachedApps = [];
+
   @override
   void initState() {
     super.initState();
     widget.authService.addListener(_onServiceStateChanged);
     widget.subscriptionService.addListener(_onServiceStateChanged);
+    _loadAllApps();
     _checkPaymentReturnUrl();
+  }
+
+  void _loadAllApps() {
+    widget.appRepo.getAllApps().then((apps) {
+      if (mounted) setState(() => _cachedApps = apps);
+    });
   }
 
   void _checkPaymentReturnUrl() {
@@ -701,6 +710,8 @@ class _AppShellState extends State<AppShell> {
         app: _selectedAppForDetail!,
         watchlistRepo: widget.watchlistRepo,
         subscriptionService: widget.subscriptionService,
+        allApps: _cachedApps,
+        onSelectCompetitor: _openAppDetail,
         onBack: () => setState(() => _selectedAppForDetail = null),
         onBuildWithAI: (app) {
           setState(() {
@@ -724,6 +735,7 @@ class _AppShellState extends State<AppShell> {
         return DashboardView(
           oppRepo: widget.oppRepo,
           trendRepo: widget.trendRepo,
+          appRepo: widget.appRepo,
           onOpenApp: _openAppDetail,
           onNavigateToBuildAI: () => _navigateToTab(8),
         );

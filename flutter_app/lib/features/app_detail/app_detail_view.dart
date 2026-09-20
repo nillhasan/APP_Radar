@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/watchlist_repository.dart';
@@ -10,6 +11,8 @@ import '../../widgets/signal_bar.dart';
 import '../../core/utils/formatters.dart';
 import '../../widgets/app_icon_widget.dart';
 import 'widgets/negative_review_mining_card.dart';
+import 'widgets/competitor_avatar_stack.dart';
+import 'widgets/regional_breakdown_bar.dart';
 
 class AppDetailView extends StatefulWidget {
   final AppItem app;
@@ -17,6 +20,8 @@ class AppDetailView extends StatefulWidget {
   final ValueChanged<AppItem> onBuildWithAI;
   final WatchlistRepository? watchlistRepo;
   final SubscriptionService? subscriptionService;
+  final List<AppItem>? allApps;
+  final ValueChanged<AppItem>? onSelectCompetitor;
 
   const AppDetailView({
     super.key,
@@ -25,6 +30,8 @@ class AppDetailView extends StatefulWidget {
     required this.onBuildWithAI,
     this.watchlistRepo,
     this.subscriptionService,
+    this.allApps,
+    this.onSelectCompetitor,
   });
 
   @override
@@ -72,6 +79,13 @@ class _AppDetailViewState extends State<AppDetailView> {
     }
   }
 
+  Future<void> _launchStoreUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
@@ -108,6 +122,29 @@ class _AppDetailViewState extends State<AppDetailView> {
         // Screenshots Gallery
         _buildScreenshotGallery(),
         const SizedBox(height: 20),
+
+        // Direct Competitor Avatar Stack (1-click quick switch)
+        if (widget.allApps != null && widget.allApps!.isNotEmpty) ...[
+          CompetitorAvatarStack(
+            currentApp: app,
+            allApps: widget.allApps!,
+            onSelectCompetitor: (competitor) {
+              if (widget.onSelectCompetitor != null) {
+                widget.onSelectCompetitor!(competitor);
+              }
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // 30-Day Regional Revenue & Market Share Distribution
+        if (app.regionalBreakdown != null && app.regionalBreakdown!.isNotEmpty) ...[
+          RegionalBreakdownBar(
+            regionalBreakdown: app.regionalBreakdown!,
+            totalRevenue: app.revenueEstimate,
+          ),
+          const SizedBox(height: 20),
+        ],
 
         // AI Summary & 5-Signal Breakdown Grid
         if (isDesktop)
@@ -156,8 +193,6 @@ class _AppDetailViewState extends State<AppDetailView> {
   }
 
   Widget _buildHeroCard(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -183,20 +218,20 @@ class _AppDetailViewState extends State<AppDetailView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        Flexible(
-                          child: Text(
-                            app.name,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.5,
-                            ),
+                        Text(
+                          app.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
@@ -208,7 +243,6 @@ class _AppDetailViewState extends State<AppDetailView> {
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
                           ),
                         ),
-                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
@@ -230,70 +264,54 @@ class _AppDetailViewState extends State<AppDetailView> {
                   ],
                 ),
               ),
-              if (isDesktop) ...[
-                ScoreBadge(score: app.opportunityScore, fontSize: 16),
-                const SizedBox(width: 16),
-                _buildExportButton(),
-                const SizedBox(width: 12),
-                if (widget.watchlistRepo != null) ...[
-                  OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _toggleWatchlist,
-                    icon: Icon(
-                      _isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
-                      size: 18,
-                      color: _isWatchlisted ? AppColors.primary : AppColors.textSecondary,
-                    ),
-                    label: Text(_isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _isWatchlisted ? AppColors.primary : AppColors.textPrimary,
-                      side: BorderSide(color: _isWatchlisted ? AppColors.primary : AppColors.border),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                FilledButton.icon(
-                  onPressed: () => widget.onBuildWithAI(app),
-                  icon: const Icon(Icons.auto_awesome, size: 18),
-                  label: const Text('Build This App'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  ),
-                ),
-              ],
+              const SizedBox(width: 16),
+              ScoreBadge(score: app.opportunityScore, fontSize: 16),
             ],
           ),
-          if (!isDesktop) ...[
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ScoreBadge(score: app.opportunityScore, fontSize: 14),
-                Row(
-                  children: [
-                    _buildExportButton(),
-                    const SizedBox(width: 8),
-                    if (widget.watchlistRepo != null) ...[
-                      IconButton(
-                        tooltip: _isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist',
-                        icon: Icon(
-                          _isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
-                          color: _isWatchlisted ? AppColors.primary : AppColors.textSecondary,
-                        ),
-                        onPressed: _isLoading ? null : _toggleWatchlist,
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    FilledButton.icon(
-                      onPressed: () => widget.onBuildWithAI(app),
-                      icon: const Icon(Icons.auto_awesome, size: 16),
-                      label: const Text('Build This App'),
-                    ),
-                  ],
+          const SizedBox(height: 18),
+          // Action Buttons Bar
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _buildExportButton(),
+              if (app.appUrl != null && app.appUrl!.isNotEmpty)
+                OutlinedButton.icon(
+                  onPressed: () => _launchStoreUrl(app.appUrl!),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                  label: const Text('Store Page ↗'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primaryBorder),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
                 ),
-              ],
-            ),
-          ],
+              if (widget.watchlistRepo != null)
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _toggleWatchlist,
+                  icon: Icon(
+                    _isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
+                    size: 18,
+                    color: _isWatchlisted ? AppColors.primary : AppColors.textSecondary,
+                  ),
+                  label: Text(_isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _isWatchlisted ? AppColors.primary : AppColors.textPrimary,
+                    side: BorderSide(color: _isWatchlisted ? AppColors.primary : AppColors.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                ),
+              FilledButton.icon(
+                onPressed: () => widget.onBuildWithAI(app),
+                icon: const Icon(Icons.auto_awesome, size: 18),
+                label: const Text('Build This App'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
           const Divider(),
           const SizedBox(height: 16),
@@ -768,10 +786,13 @@ class _AppDetailViewState extends State<AppDetailView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '5-Signal Radar Breakdown',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              const Expanded(
+                child: Text(
+                  '5-Signal Radar Breakdown',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                ),
               ),
+              const SizedBox(width: 8),
               ScoreBadge(score: app.opportunityScore, fontSize: 12),
             ],
           ),
@@ -827,9 +848,11 @@ class _AppDetailViewState extends State<AppDetailView> {
             children: [
               Icon(icon, size: 18, color: iconColor),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                ),
               ),
             ],
           ),

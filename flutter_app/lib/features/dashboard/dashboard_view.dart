@@ -8,10 +8,13 @@ import '../../widgets/metric_card.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/app_icon_widget.dart';
+import '../../widgets/top_charts/top_charts_leaderboard.dart';
+import '../../data/repositories/app_repository.dart';
 
 class DashboardView extends StatelessWidget {
   final OpportunityRepository oppRepo;
   final MarketTrendRepository trendRepo;
+  final AppRepository? appRepo;
   final ValueChanged<AppItem> onOpenApp;
   final VoidCallback onNavigateToBuildAI;
 
@@ -19,6 +22,7 @@ class DashboardView extends StatelessWidget {
     super.key,
     required this.oppRepo,
     required this.trendRepo,
+    this.appRepo,
     required this.onOpenApp,
     required this.onNavigateToBuildAI,
   });
@@ -31,6 +35,7 @@ class DashboardView extends StatelessWidget {
       future: Future.wait([
         oppRepo.getTopOpportunities(limit: 5),
         trendRepo.getCategoryTrends(),
+        appRepo?.getAllApps() ?? oppRepo.getFilteredOpportunities(),
       ]),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -39,6 +44,7 @@ class DashboardView extends StatelessWidget {
 
         final topApps = snapshot.data![0] as List<AppItem>;
         final trends = snapshot.data![1] as List<CategoryTrend>;
+        final allApps = snapshot.data![2] as List<AppItem>;
 
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -49,6 +55,11 @@ class DashboardView extends StatelessWidget {
                   'AI-computed market velocity, store signals, and review sentiment across 128+ tracked applications.',
             ),
             _buildKpiGrid(),
+            const SizedBox(height: 24),
+            TopChartsLeaderboard(
+              apps: allApps,
+              onOpenApp: onOpenApp,
+            ),
             const SizedBox(height: 24),
             if (isDesktop)
               Row(
