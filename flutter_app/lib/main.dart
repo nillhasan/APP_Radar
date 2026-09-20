@@ -7,7 +7,9 @@ import 'data/repositories/opportunity_repository.dart';
 import 'data/repositories/market_trend_repository.dart';
 import 'data/repositories/report_repository.dart';
 import 'data/repositories/watchlist_repository.dart';
+import 'data/repositories/supabase_watchlist_repository.dart';
 import 'services/ai/ai_service.dart';
+import 'services/auth/auth_service.dart';
 import 'widgets/app_shell.dart';
 
 const String supabaseUrl = 'https://eqemignoxkftfwdoxcjs.supabase.co';
@@ -37,6 +39,7 @@ class AppRadarApp extends StatefulWidget {
 }
 
 class _AppRadarAppState extends State<AppRadarApp> {
+  late final AuthService _authService;
   late final AppRepository _appRepo;
   late final OpportunityRepository _oppRepo;
   late final MarketTrendRepository _trendRepo;
@@ -47,22 +50,36 @@ class _AppRadarAppState extends State<AppRadarApp> {
   @override
   void initState() {
     super.initState();
-    final mockRepo = MockAppRepository();
 
+    SupabaseClient? supabaseClient;
     try {
-      final supabaseClient = Supabase.instance.client;
+      supabaseClient = Supabase.instance.client;
+    } catch (_) {}
+
+    _authService = AuthService(client: supabaseClient);
+
+    final mockRepo = MockAppRepository();
+    if (supabaseClient != null) {
       _appRepo = SupabaseAppRepository(
         client: supabaseClient,
         fallbackRepo: mockRepo,
       );
-    } catch (_) {
+    } else {
       _appRepo = mockRepo;
     }
 
     _oppRepo = MockOpportunityRepository(appRepository: _appRepo);
     _trendRepo = MockMarketTrendRepository();
     _reportRepo = MockReportRepository();
-    _watchlistRepo = MockWatchlistRepository(appRepository: _appRepo);
+
+    final mockWatchlist = MockWatchlistRepository(appRepository: _appRepo);
+    _watchlistRepo = SupabaseWatchlistRepository(
+      client: supabaseClient,
+      authService: _authService,
+      appRepository: _appRepo,
+      fallbackRepo: mockWatchlist,
+    );
+
     _aiService = MockAIService();
   }
 
@@ -79,6 +96,7 @@ class _AppRadarAppState extends State<AppRadarApp> {
         reportRepo: _reportRepo,
         watchlistRepo: _watchlistRepo,
         aiService: _aiService,
+        authService: _authService,
       ),
     );
   }

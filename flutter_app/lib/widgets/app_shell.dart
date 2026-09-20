@@ -20,6 +20,8 @@ import '../data/repositories/market_trend_repository.dart';
 import '../data/repositories/report_repository.dart';
 import '../data/repositories/watchlist_repository.dart';
 import '../services/ai/ai_service.dart';
+import '../services/auth/auth_service.dart';
+import 'auth/auth_modal.dart';
 
 class AppShell extends StatefulWidget {
   final AppRepository appRepo;
@@ -28,6 +30,7 @@ class AppShell extends StatefulWidget {
   final ReportRepository reportRepo;
   final WatchlistRepository watchlistRepo;
   final AIService aiService;
+  final AuthService authService;
 
   const AppShell({
     super.key,
@@ -37,6 +40,7 @@ class AppShell extends StatefulWidget {
     required this.reportRepo,
     required this.watchlistRepo,
     required this.aiService,
+    required this.authService,
   });
 
   @override
@@ -94,6 +98,22 @@ class _AppShellState extends State<AppShell> {
       _selectedAppForDetail = null;
       _activeBlueprint = null;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.authService.addListener(_onAuthChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.authService.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -227,16 +247,145 @@ class _AppShellState extends State<AppShell> {
         const SizedBox(width: 8),
         Padding(
           padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            radius: 16,
-            backgroundColor: AppColors.primaryLight,
-            child: const Text(
-              'AR',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
-            ),
+          child: _buildAuthHeaderButton(isDesktop),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuthHeaderButton(bool isDesktop) {
+    final auth = widget.authService;
+
+    if (!auth.isAuthenticated) {
+      return ElevatedButton.icon(
+        onPressed: () => AuthModal.show(
+          context,
+          authService: auth,
+          onSuccess: () => setState(() {}),
+        ),
+        icon: const Icon(Icons.login, size: 16),
+        label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+      );
+    }
+
+    return PopupMenuButton<String>(
+      tooltip: 'Account Profile',
+      offset: const Offset(0, 42),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (val) async {
+        if (val == 'watchlist') {
+          _navigateToTab(5); // Watchlist
+        } else if (val == 'settings') {
+          _navigateToTab(9); // Settings
+        } else if (val == 'signout') {
+          await auth.signOut();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Successfully signed out')),
+            );
+          }
+        }
+      },
+      itemBuilder: (ctx) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                auth.userDisplayName,
+                style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
+              ),
+              Text(
+                auth.userEmail,
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.successLight,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'FREE BUILDER PLAN',
+                  style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.w700),
+                ),
+              ),
+              const Divider(),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'watchlist',
+          child: Row(
+            children: [
+              Icon(Icons.bookmark_outline, size: 18, color: AppColors.textSecondary),
+              SizedBox(width: 8),
+              Text('My Cloud Watchlist', style: TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'settings',
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined, size: 18, color: AppColors.textSecondary),
+              SizedBox(width: 8),
+              Text('Account Settings', style: TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem<String>(
+          value: 'signout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, size: 18, color: AppColors.danger),
+              SizedBox(width: 8),
+              Text('Sign Out', style: TextStyle(fontSize: 13, color: AppColors.danger, fontWeight: FontWeight.w600)),
+            ],
           ),
         ),
       ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                auth.userInitials,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+              ),
+            ),
+            if (isDesktop) ...[
+              const SizedBox(width: 8),
+              Text(
+                auth.userDisplayName,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.textSecondary),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

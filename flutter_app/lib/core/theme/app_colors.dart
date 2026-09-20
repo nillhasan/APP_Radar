@@ -42,6 +42,11 @@ class AppColors {
   static const Color errorLight = Color(0xFFFEF2F2);
   static const Color errorBorder = Color(0xFFFECACA);
 
+  // Danger alias (semantic)
+  static const Color danger = Color(0xFFEF4444);
+  static const Color dangerLight = Color(0xFFFEF2F2);
+  static const Color dangerBorder = Color(0xFFFECACA);
+
   static const Color info = Color(0xFF3B82F6);
   static const Color infoLight = Color(0xFFEFF6FF);
 }
