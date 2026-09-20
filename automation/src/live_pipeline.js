@@ -2,6 +2,8 @@
 // Queries Apple App Store & Google Play Store in real-time
 import { createClient } from '@supabase/supabase-js';
 import gplay from 'google-play-scraper';
+import { Resend } from 'resend';
+import { renderEmailTemplate } from './email_template.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://eqemignoxkftfwdoxcjs.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -322,6 +324,51 @@ async function runPipeline() {
     console.log(`📰 Ingested Daily Intelligence Report covering iOS & Google Play.`);
   } catch (repErr) {
     console.warn('⚠️ Could not insert daily report:', repErr.message);
+  }
+
+  // 4. Send Executive Email Report via Resend (if configured)
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const reportToEmail = process.env.REPORT_TO_EMAIL;
+  const reportFromEmail = process.env.REPORT_FROM_EMAIL || 'onboarding@resend.dev';
+
+  if (resendApiKey && reportToEmail) {
+    try {
+      console.log(`\n📧 Dispatching Daily Intelligence Email to ${reportToEmail}...`);
+      const resend = new Resend(resendApiKey);
+
+      const topOpportunities = processedApps
+        .sort((a, b) => (b.analysis?.opportunity_score || 0) - (a.analysis?.opportunity_score || 0))
+        .slice(0, 5);
+
+      const dateStr = new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      const htmlContent = renderEmailTemplate({
+        totalAnalyzed: processedApps.length,
+        topOpportunities: topOpportunities,
+        dateString: dateStr
+      });
+
+      const { data, error } = await resend.emails.send({
+        from: reportFromEmail,
+        to: reportToEmail,
+        subject: `🚀 AppRadar Daily Intelligence Briefing — ${dateStr}`,
+        html: htmlContent
+      });
+
+      if (error) {
+        console.error('  ❌ Resend email delivery failed:', error.message);
+      } else {
+        console.log(`  ✅ Daily Briefing email successfully delivered! ID: ${data?.id}`);
+      }
+    } catch (emailErr) {
+      console.error('  ❌ Error dispatching email via Resend:', emailErr.message);
+    }
+  } else {
+    console.log('\nℹ️ Resend email dispatch skipped (RESEND_API_KEY or REPORT_TO_EMAIL not set in .env).');
   }
 
   console.log('\n🎉 Dual-Store Real-time pipeline run completed successfully!');
