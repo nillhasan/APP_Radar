@@ -25,6 +25,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Verify Secret Configuration
+        run: |
+          echo "=== Secrets Availability Check ==="
+          if [ -n "${{ secrets.RESEND_API_KEY }}" ]; then echo "✅ RESEND_API_KEY is present"; else echo "⚠️ RESEND_API_KEY is MISSING in Repository Secrets"; fi
+          if [ -n "${{ secrets.REPORT_TO_EMAIL }}" ]; then echo "✅ REPORT_TO_EMAIL is present"; else echo "⚠️ REPORT_TO_EMAIL is MISSING in Repository Secrets"; fi
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then echo "✅ GEMINI_API_KEY is present"; else echo "⚠️ GEMINI_API_KEY is MISSING in Repository Secrets"; fi
+          if [ -n "${{ secrets.SUPABASE_ANON_KEY }}" ]; then echo "✅ SUPABASE_ANON_KEY is present"; else echo "⚠️ SUPABASE_ANON_KEY is MISSING in Repository Secrets"; fi
+
       - name: Run Live AppRadar Pipeline
         run: npm run pipeline
         env:

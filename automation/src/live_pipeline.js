@@ -351,6 +351,8 @@ async function runPipeline() {
         year: 'numeric'
       });
 
+      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
       const htmlContent = renderEmailTemplate({
         totalAnalyzed: processedApps.length,
         topOpportunities: topOpportunities,
@@ -360,20 +362,22 @@ async function runPipeline() {
       const { data, error } = await resend.emails.send({
         from: reportFromEmail,
         to: reportToEmail,
-        subject: `🚀 AppRadar Daily Intelligence Briefing — ${dateStr}`,
+        subject: `🚀 AppRadar Daily Intelligence Briefing — ${dateStr} [${timeStr}]`,
         html: htmlContent
       });
 
       if (error) {
         console.error('  ❌ Resend email delivery failed:', error.message);
       } else {
-        console.log(`  ✅ Daily Briefing email successfully delivered! ID: ${data?.id}`);
+        console.log(`  ✅ Daily Briefing email successfully delivered to ${reportToEmail}! ID: ${data?.id}`);
       }
     } catch (emailErr) {
       console.error('  ❌ Error dispatching email via Resend:', emailErr.message);
     }
   } else {
-    console.log('\nℹ️ Resend email dispatch skipped (RESEND_API_KEY or REPORT_TO_EMAIL not set in .env).');
+    console.log('\nℹ️ Resend email dispatch skipped:');
+    if (!resendApiKey) console.warn('   ⚠️ RESEND_API_KEY is not set.');
+    if (!reportToEmail) console.warn('   ⚠️ REPORT_TO_EMAIL is not set.');
   }
 
   console.log('\n🎉 Dual-Store Real-time pipeline run completed successfully!');
