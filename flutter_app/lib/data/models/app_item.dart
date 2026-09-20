@@ -30,6 +30,7 @@ class AppItem {
   final String category;
   final String platform;
   final String iconEmoji;
+  final String? iconUrl;
   final String description;
   final double rating;
   final int reviewCount;
@@ -61,6 +62,7 @@ class AppItem {
     required this.category,
     required this.platform,
     required this.iconEmoji,
+    this.iconUrl,
     required this.description,
     required this.rating,
     required this.reviewCount,
@@ -90,6 +92,8 @@ class AppItem {
     bool? isWatchlisted,
     String? notes,
     NegativeReviewMining? negativeReviews,
+    String? iconUrl,
+    List<String>? screenshots,
   }) {
     return AppItem(
       id: id,
@@ -98,6 +102,7 @@ class AppItem {
       category: category,
       platform: platform,
       iconEmoji: iconEmoji,
+      iconUrl: iconUrl ?? this.iconUrl,
       description: description,
       rating: rating,
       reviewCount: reviewCount,
@@ -117,7 +122,7 @@ class AppItem {
       userPainPoints: userPainPoints,
       competitorGaps: competitorGaps,
       suggestedMvp: suggestedMvp,
-      screenshots: screenshots,
+      screenshots: screenshots ?? this.screenshots,
       isWatchlisted: isWatchlisted ?? this.isWatchlisted,
       notes: notes ?? this.notes,
       negativeReviews: negativeReviews ?? this.negativeReviews,

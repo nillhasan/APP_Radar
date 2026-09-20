@@ -107,6 +107,7 @@ class SupabaseAppRepository implements AppRepository {
       category: category,
       platform: json['platform'] as String? ?? 'iOS App Store',
       iconEmoji: _inferEmojiForCategory(category, name),
+      iconUrl: json['icon_url'] as String?,
       description: json['description'] as String? ?? 'Real-time tracked mobile application.',
       rating: (json['rating'] as num?)?.toDouble() ?? 4.7,
       reviewCount: (json['review_count'] as num?)?.toInt() ?? 5000,

@@ -8,6 +8,7 @@ import '../../services/subscription/subscription_service.dart';
 import '../../widgets/pricing/pricing_modal.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/score_badge.dart';
+import '../../widgets/app_icon_widget.dart';
 
 class BuildWithAIView extends StatefulWidget {
   final AppRepository appRepo;
@@ -83,7 +84,13 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
                             value: a,
                             child: Row(
                               children: [
-                                Text(a.iconEmoji, style: const TextStyle(fontSize: 18)),
+                                AppIconWidget(
+                                  iconUrl: a.iconUrl,
+                                  iconEmoji: a.iconEmoji,
+                                  size: 22,
+                                  borderRadius: 5,
+                                  fontSize: 14,
+                                ),
                                 const SizedBox(width: 10),
                                 Text(a.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                                 const SizedBox(width: 8),

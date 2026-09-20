@@ -5,6 +5,7 @@ import '../../data/repositories/app_repository.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/app_icon_widget.dart';
 import '../../core/utils/formatters.dart';
 
 class AppExplorerView extends StatefulWidget {
@@ -98,7 +99,13 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(app.iconEmoji, style: const TextStyle(fontSize: 20)),
+                              AppIconWidget(
+                                iconUrl: app.iconUrl,
+                                iconEmoji: app.iconEmoji,
+                                size: 28,
+                                borderRadius: 6,
+                                fontSize: 16,
+                              ),
                               const SizedBox(width: 10),
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

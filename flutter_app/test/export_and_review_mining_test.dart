@@ -6,8 +6,10 @@ import 'package:app_radar/data/models/build_blueprint.dart';
 import 'package:app_radar/data/models/negative_review_mining.dart';
 import 'package:app_radar/data/mock/mock_data.dart';
 import 'package:app_radar/features/app_detail/widgets/negative_review_mining_card.dart';
+import 'package:app_radar/features/app_detail/app_detail_view.dart';
 import 'package:app_radar/features/build_with_ai/build_blueprint_view.dart';
 import 'package:app_radar/services/subscription/subscription_service.dart';
+import 'package:app_radar/widgets/app_icon_widget.dart';
 
 void main() {
   const testBlueprint = BuildBlueprint(
@@ -206,6 +208,50 @@ void main() {
       expect(find.text('Download PROMPT.md'), findsOneWidget);
       expect(find.text('Copy Prompt for AI'), findsOneWidget);
       expect(find.text('Export JSON'), findsOneWidget);
+    });
+  });
+
+  group('AppIconWidget & Screenshot Gallery Tests', () {
+    testWidgets('AppIconWidget renders emoji fallback correctly', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: AppIconWidget(
+              iconEmoji: '🎙️',
+              size: 48,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('🎙️'), findsOneWidget);
+    });
+
+    testWidgets('AppDetailView renders screenshot gallery with URL and fallback without overflow', (tester) async {
+      final appWithScreenshots = MockData.apps.first.copyWith(
+        screenshots: [
+          'https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/42/0f/1c/screen1.png',
+          'Searchable Archive with Category Tags',
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppDetailView(
+              app: appWithScreenshots,
+              onBack: () {},
+              onBuildWithAI: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      // Verify Mobile Workflow Screenshots section is displayed
+      expect(find.text('Mobile Workflow Screenshots'), findsOneWidget);
+      expect(find.text('2 Deconstructed UI Flows • Click to Zoom'), findsOneWidget);
+      expect(find.text('Screen #1'), findsWidgets);
+      expect(find.text('Screen #2'), findsWidgets);
     });
   });
 }

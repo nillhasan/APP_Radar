@@ -8,6 +8,7 @@ import '../../widgets/pricing/pricing_modal.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/signal_bar.dart';
 import '../../core/utils/formatters.dart';
+import '../../widgets/app_icon_widget.dart';
 import 'widgets/negative_review_mining_card.dart';
 
 class AppDetailView extends StatefulWidget {
@@ -79,7 +80,10 @@ class _AppDetailViewState extends State<AppDetailView> {
       padding: const EdgeInsets.all(24),
       children: [
         // Navigation Breadcrumb & Back
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 16,
+          runSpacing: 8,
           children: [
             OutlinedButton.icon(
               onPressed: widget.onBack,
@@ -89,7 +93,6 @@ class _AppDetailViewState extends State<AppDetailView> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               ),
             ),
-            const SizedBox(width: 16),
             Text(
               'Opportunities / ${app.category} / ${app.name}',
               style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
@@ -168,16 +171,12 @@ class _AppDetailViewState extends State<AppDetailView> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Text(app.iconEmoji, style: const TextStyle(fontSize: 34)),
+              AppIconWidget(
+                iconUrl: app.iconUrl,
+                iconEmoji: app.iconEmoji,
+                size: 64,
+                borderRadius: 14,
+                fontSize: 34,
               ),
               const SizedBox(width: 18),
               Expanded(
@@ -326,7 +325,148 @@ class _AppDetailViewState extends State<AppDetailView> {
     );
   }
 
+  void _openScreenshotLightbox(BuildContext context, int initialIndex) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.85),
+      builder: (ctx) {
+        int currentIndex = initialIndex;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final currentShot = app.screenshots[currentIndex];
+            final isUrl = currentShot.startsWith('http://') || currentShot.startsWith('https://');
+
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Image or Mockup Box
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 720, maxWidth: 460),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 30,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Modal top bar
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              color: AppColors.surfaceSecondary,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Screen ${currentIndex + 1} of ${app.screenshots.length}',
+                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close, size: 20, color: AppColors.textSecondary),
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Flexible(
+                              child: isUrl
+                                  ? Image.network(
+                                      currentShot,
+                                      fit: BoxFit.contain,
+                                      loadingBuilder: (ctx, child, progress) {
+                                        if (progress == null) return child;
+                                        return const Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(40),
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (ctx, err, stack) => Padding(
+                                        padding: const EdgeInsets.all(40),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: const [
+                                            Icon(Icons.broken_image, size: 48, color: AppColors.textMuted),
+                                            SizedBox(height: 12),
+                                            Text('Failed to load screenshot image', style: TextStyle(color: AppColors.textMuted)),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : Padding(
+                                      padding: const EdgeInsets.all(32),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.smartphone, size: 64, color: AppColors.primary),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            currentShot,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Prev button
+                  if (currentIndex > 0)
+                    Positioned(
+                      left: 10,
+                      child: IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.9),
+                          foregroundColor: Colors.black87,
+                        ),
+                        icon: const Icon(Icons.chevron_left, size: 30),
+                        onPressed: () => setDialogState(() => currentIndex--),
+                      ),
+                    ),
+                  // Next button
+                  if (currentIndex < app.screenshots.length - 1)
+                    Positioned(
+                      right: 10,
+                      child: IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.9),
+                          foregroundColor: Colors.black87,
+                        ),
+                        icon: const Icon(Icons.chevron_right, size: 30),
+                        onPressed: () => setDialogState(() => currentIndex++),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildScreenshotGallery() {
+    if (app.screenshots.isEmpty) return const SizedBox.shrink();
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -337,56 +477,175 @@ class _AppDetailViewState extends State<AppDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Mobile Workflow Screenshots',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.phone_iphone, size: 18, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text(
+                    'Mobile Workflow Screenshots',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  ),
+                ],
               ),
               Text(
-                'Deconstructed UI Flows',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                '${app.screenshots.length} Deconstructed UI Flows • Click to Zoom',
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 160,
+            height: 310,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: app.screenshots.length,
               itemBuilder: (context, idx) {
-                final shotTitle = app.screenshots[idx];
-                return Container(
-                  width: 220,
-                  margin: const EdgeInsets.only(right: 14),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceSecondary,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.smartphone, size: 36, color: AppColors.primary),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Screen #${idx + 1}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                final shot = app.screenshots[idx];
+                final isUrl = shot.startsWith('http://') || shot.startsWith('https://');
+
+                return MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => _openScreenshotLightbox(context, idx),
+                    child: Container(
+                      width: 170,
+                      margin: const EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        shotTitle,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      clipBehavior: Clip.antiAlias,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (isUrl)
+                            Image.network(
+                              shot,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Screen #${idx + 1}',
+                                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stack) => _buildMockupFallback(idx, shot),
+                            )
+                          else
+                            _buildMockupFallback(idx, shot),
+
+                          // Top-right zoom badge
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(Icons.fullscreen, size: 14, color: Colors.white),
+                            ),
+                          ),
+
+                          // Bottom screen label badge
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.75),
+                                  ],
+                                ),
+                              ),
+                              child: Text(
+                                isUrl ? 'Screen #${idx + 1}' : shot,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMockupFallback(int idx, String title) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      color: AppColors.surfaceSecondary,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.smartphone, size: 32, color: AppColors.primary),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Screen #${idx + 1}',
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title.startsWith('http') ? 'Store Preview' : title,
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
           ),
         ],
       ),

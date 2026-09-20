@@ -7,6 +7,7 @@ import '../../widgets/filter_bar.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/signal_bar.dart';
+import '../../widgets/app_icon_widget.dart';
 
 class OpportunitiesView extends StatefulWidget {
   final OpportunityRepository oppRepo;
@@ -153,15 +154,12 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(app.iconEmoji, style: const TextStyle(fontSize: 24)),
+              AppIconWidget(
+                iconUrl: app.iconUrl,
+                iconEmoji: app.iconEmoji,
+                size: 46,
+                borderRadius: 10,
+                fontSize: 24,
               ),
               const SizedBox(width: 14),
               Expanded(

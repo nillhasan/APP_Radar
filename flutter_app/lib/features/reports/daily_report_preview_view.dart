@@ -4,6 +4,7 @@ import '../../data/models/app_item.dart';
 import '../../data/repositories/opportunity_repository.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/app_icon_widget.dart';
 
 class DailyReportPreviewView extends StatelessWidget {
   final OpportunityRepository oppRepo;
@@ -124,7 +125,13 @@ class DailyReportPreviewView extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(app.iconEmoji, style: const TextStyle(fontSize: 20)),
+                        AppIconWidget(
+                          iconUrl: app.iconUrl,
+                          iconEmoji: app.iconEmoji,
+                          size: 26,
+                          borderRadius: 6,
+                          fontSize: 16,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           app.name,

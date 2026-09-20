@@ -7,6 +7,7 @@ import '../../data/repositories/market_trend_repository.dart';
 import '../../widgets/metric_card.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/app_icon_widget.dart';
 
 class DashboardView extends StatelessWidget {
   final OpportunityRepository oppRepo;
@@ -203,15 +204,12 @@ class DashboardView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              Container(
-                width: 38,
-                height: 38,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(app.iconEmoji, style: const TextStyle(fontSize: 20)),
+              AppIconWidget(
+                iconUrl: app.iconUrl,
+                iconEmoji: app.iconEmoji,
+                size: 38,
+                borderRadius: 8,
+                fontSize: 20,
               ),
               const SizedBox(width: 14),
               SizedBox(

@@ -4,6 +4,7 @@ import '../../data/models/app_item.dart';
 import '../../data/repositories/watchlist_repository.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/app_icon_widget.dart';
 
 class WatchlistView extends StatefulWidget {
   final WatchlistRepository watchlistRepo;
@@ -102,15 +103,12 @@ class _WatchlistViewState extends State<WatchlistView> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceSecondary,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(app.iconEmoji, style: const TextStyle(fontSize: 22)),
+                          AppIconWidget(
+                            iconUrl: app.iconUrl,
+                            iconEmoji: app.iconEmoji,
+                            size: 44,
+                            borderRadius: 8,
+                            fontSize: 22,
                           ),
                           const SizedBox(width: 14),
                           Expanded(
