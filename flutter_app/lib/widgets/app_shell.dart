@@ -97,11 +97,25 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
+  AppItem? _selectedAppForCompetitor;
+
+  void _openCompetitorMatrix(AppItem app) {
+    setState(() {
+      _selectedAppForCompetitor = app;
+      _selectedAppForDetail = null;
+      _activeBlueprint = null;
+      _selectedIndex = 3;
+    });
+  }
+
   void _navigateToTab(int index) {
     setState(() {
       _selectedIndex = index;
       _selectedAppForDetail = null;
       _activeBlueprint = null;
+      if (index != 3) {
+        _selectedAppForCompetitor = null;
+      }
     });
   }
 
@@ -712,6 +726,7 @@ class _AppShellState extends State<AppShell> {
         subscriptionService: widget.subscriptionService,
         allApps: _cachedApps,
         onSelectCompetitor: _openAppDetail,
+        onViewCompetitorMatrix: _openCompetitorMatrix,
         onBack: () => setState(() => _selectedAppForDetail = null),
         onBuildWithAI: (app) {
           setState(() {
@@ -751,7 +766,12 @@ class _AppShellState extends State<AppShell> {
           onOpenApp: _openAppDetail,
         );
       case 3:
-        return const CompetitorsView();
+        return CompetitorsView(
+          appRepo: widget.appRepo,
+          onOpenApp: _openAppDetail,
+          onBuildWithAI: (app) => _navigateToTab(8),
+          initialApp: _selectedAppForCompetitor,
+        );
       case 4:
         return MarketTrendsView(trendRepo: widget.trendRepo);
       case 5:

@@ -22,6 +22,7 @@ class AppDetailView extends StatefulWidget {
   final SubscriptionService? subscriptionService;
   final List<AppItem>? allApps;
   final ValueChanged<AppItem>? onSelectCompetitor;
+  final ValueChanged<AppItem>? onViewCompetitorMatrix;
 
   const AppDetailView({
     super.key,
@@ -32,6 +33,7 @@ class AppDetailView extends StatefulWidget {
     this.subscriptionService,
     this.allApps,
     this.onSelectCompetitor,
+    this.onViewCompetitorMatrix,
   });
 
   @override
@@ -133,6 +135,9 @@ class _AppDetailViewState extends State<AppDetailView> {
                 widget.onSelectCompetitor!(competitor);
               }
             },
+            onOpenMatrix: widget.onViewCompetitorMatrix != null
+                ? () => widget.onViewCompetitorMatrix!(app)
+                : null,
           ),
           const SizedBox(height: 20),
         ],

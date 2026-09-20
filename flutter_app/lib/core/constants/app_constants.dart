@@ -6,12 +6,18 @@ class AppConstants {
 
   static const List<String> categories = [
     'All Categories',
-    'AI & Machine Learning',
     'Productivity',
-    'Health & Fitness',
     'Education',
+    'Business',
+    'Health & Fitness',
     'Finance',
-    'Utilities',
+    'Utilities & Tools',
+    'Developer & AI Tools',
+    'Photo & Video',
+    'Social & Communication',
+    'Lifestyle',
+    'Entertainment',
+    'Medical',
   ];
 
   static const List<String> platforms = [

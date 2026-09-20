@@ -7,12 +7,14 @@ class CompetitorAvatarStack extends StatelessWidget {
   final AppItem currentApp;
   final List<AppItem> allApps;
   final Function(AppItem) onSelectCompetitor;
+  final VoidCallback? onOpenMatrix;
 
   const CompetitorAvatarStack({
     super.key,
     required this.currentApp,
     required this.allApps,
     required this.onSelectCompetitor,
+    this.onOpenMatrix,
   });
 
   List<AppItem> get _competitors {
@@ -106,14 +108,45 @@ class CompetitorAvatarStack extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              const Text(
-                '1-Click Switch',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
+              if (onOpenMatrix != null)
+                InkWell(
+                  onTap: onOpenMatrix,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primaryBorder),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.compare_arrows_rounded, size: 14, color: AppColors.primary),
+                        SizedBox(width: 5),
+                        Text(
+                          'Full Intelligence Matrix',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_rounded, size: 12, color: AppColors.primary),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                const Text(
+                  '1-Click Switch',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textMuted,
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
