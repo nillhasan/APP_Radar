@@ -26,21 +26,26 @@ jobs:
         run: npm install
 
       - name: Verify Secret Configuration
+        env:
+          CHECK_RESEND: ${{ secrets.RESEND_API_KEY || vars.RESEND_API_KEY }}
+          CHECK_EMAIL: ${{ secrets.REPORT_TO_EMAIL || vars.REPORT_TO_EMAIL }}
+          CHECK_GEMINI: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
+          CHECK_SUPABASE: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
         run: |
-          echo "=== Secrets Availability Check ==="
-          if [ -n "${{ secrets.RESEND_API_KEY }}" ]; then echo "✅ RESEND_API_KEY is present"; else echo "⚠️ RESEND_API_KEY is MISSING in Repository Secrets"; fi
-          if [ -n "${{ secrets.REPORT_TO_EMAIL }}" ]; then echo "✅ REPORT_TO_EMAIL is present"; else echo "⚠️ REPORT_TO_EMAIL is MISSING in Repository Secrets"; fi
-          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then echo "✅ GEMINI_API_KEY is present"; else echo "⚠️ GEMINI_API_KEY is MISSING in Repository Secrets"; fi
-          if [ -n "${{ secrets.SUPABASE_ANON_KEY }}" ]; then echo "✅ SUPABASE_ANON_KEY is present"; else echo "⚠️ SUPABASE_ANON_KEY is MISSING in Repository Secrets"; fi
+          echo "=== Secrets & Variables Availability Check ==="
+          if [ -n "$CHECK_RESEND" ]; then echo "✅ RESEND_API_KEY is detected"; else echo "⚠️ RESEND_API_KEY is MISSING"; fi
+          if [ -n "$CHECK_EMAIL" ]; then echo "✅ REPORT_TO_EMAIL is detected"; else echo "⚠️ REPORT_TO_EMAIL is MISSING"; fi
+          if [ -n "$CHECK_GEMINI" ]; then echo "✅ GEMINI_API_KEY is detected"; else echo "⚠️ GEMINI_API_KEY is MISSING"; fi
+          if [ -n "$CHECK_SUPABASE" ]; then echo "✅ SUPABASE_ANON_KEY is detected"; else echo "⚠️ SUPABASE_ANON_KEY is MISSING"; fi
 
       - name: Run Live AppRadar Pipeline
         run: npm run pipeline
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          REPORT_TO_EMAIL: ${{ secrets.REPORT_TO_EMAIL }}
-          REPORT_FROM_EMAIL: ${{ secrets.REPORT_FROM_EMAIL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || vars.OPENAI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || vars.RESEND_API_KEY }}
+          REPORT_TO_EMAIL: ${{ secrets.REPORT_TO_EMAIL || vars.REPORT_TO_EMAIL }}
+          REPORT_FROM_EMAIL: ${{ secrets.REPORT_FROM_EMAIL || vars.REPORT_FROM_EMAIL }}
