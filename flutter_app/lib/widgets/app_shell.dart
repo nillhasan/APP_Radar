@@ -714,6 +714,7 @@ class _AppShellState extends State<AppShell> {
     if (_activeBlueprint != null) {
       return BuildBlueprintView(
         blueprint: _activeBlueprint!,
+        subscriptionService: widget.subscriptionService,
         onBack: () => setState(() => _activeBlueprint = null),
       );
     }

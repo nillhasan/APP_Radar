@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/watchlist_repository.dart';
+import '../../services/export/file_export_service.dart';
 import '../../services/subscription/subscription_service.dart';
 import '../../widgets/pricing/pricing_modal.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/signal_bar.dart';
 import '../../core/utils/formatters.dart';
+import 'widgets/negative_review_mining_card.dart';
 
 class AppDetailView extends StatefulWidget {
   final AppItem app;
@@ -138,6 +140,12 @@ class _AppDetailViewState extends State<AppDetailView> {
         ],
         const SizedBox(height: 20),
 
+        // 1★ & 2★ Negative Review & Pain Point Mining
+        if (app.negativeReviews != null) ...[
+          NegativeReviewMiningCard(mining: app.negativeReviews!, appName: app.name),
+          const SizedBox(height: 20),
+        ],
+
         // Build Opportunity & MVP Action Card
         _buildBuildOpportunityCard(context),
       ],
@@ -226,6 +234,8 @@ class _AppDetailViewState extends State<AppDetailView> {
               if (isDesktop) ...[
                 ScoreBadge(score: app.opportunityScore, fontSize: 16),
                 const SizedBox(width: 16),
+                _buildExportButton(),
+                const SizedBox(width: 12),
                 if (widget.watchlistRepo != null) ...[
                   OutlinedButton.icon(
                     onPressed: _isLoading ? null : _toggleWatchlist,
@@ -262,6 +272,8 @@ class _AppDetailViewState extends State<AppDetailView> {
                 ScoreBadge(score: app.opportunityScore, fontSize: 14),
                 Row(
                   children: [
+                    _buildExportButton(),
+                    const SizedBox(width: 8),
                     if (widget.watchlistRepo != null) ...[
                       IconButton(
                         tooltip: _isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist',
@@ -670,6 +682,71 @@ class _AppDetailViewState extends State<AppDetailView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExportButton() {
+    return PopupMenuButton<String>(
+      tooltip: 'Export Teardown Report',
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      onSelected: (val) {
+        const exporter = FileExportService();
+        if (val == 'csv') {
+          exporter.downloadTeardownCsv(app);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.primary,
+              content: Text('📥 Downloaded ${app.name} Teardown as CSV!'),
+            ),
+          );
+        } else if (val == 'markdown') {
+          exporter.downloadTeardownMarkdown(app);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.primary,
+              content: Text('📥 Downloaded ${app.name} Summary as Markdown!'),
+            ),
+          );
+        }
+      },
+      itemBuilder: (ctx) => [
+        const PopupMenuItem(
+          value: 'csv',
+          child: Row(
+            children: [
+              Icon(Icons.table_chart_outlined, size: 16, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Export Data (CSV)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'markdown',
+          child: Row(
+            children: [
+              Icon(Icons.description_outlined, size: 16, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Export Summary (MD)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.download, size: 16, color: AppColors.textPrimary),
+            SizedBox(width: 6),
+            Text('Export', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          ],
+        ),
       ),
     );
   }

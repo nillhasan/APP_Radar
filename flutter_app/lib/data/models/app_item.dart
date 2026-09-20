@@ -1,3 +1,5 @@
+import 'negative_review_mining.dart';
+
 class AppSignals {
   final int growthSignal;
   final int revenueSignal;
@@ -50,6 +52,7 @@ class AppItem {
   final List<String> screenshots;
   final bool isWatchlisted;
   final String notes;
+  final NegativeReviewMining? negativeReviews;
 
   const AppItem({
     required this.id,
@@ -80,11 +83,13 @@ class AppItem {
     this.screenshots = const [],
     this.isWatchlisted = false,
     this.notes = '',
+    this.negativeReviews,
   });
 
   AppItem copyWith({
     bool? isWatchlisted,
     String? notes,
+    NegativeReviewMining? negativeReviews,
   }) {
     return AppItem(
       id: id,
@@ -115,6 +120,7 @@ class AppItem {
       screenshots: screenshots,
       isWatchlisted: isWatchlisted ?? this.isWatchlisted,
       notes: notes ?? this.notes,
+      negativeReviews: negativeReviews ?? this.negativeReviews,
     );
   }
 }

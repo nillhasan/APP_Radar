@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/build_blueprint.dart';
+import '../../services/export/file_export_service.dart';
+import '../../services/subscription/subscription_service.dart';
 
 class BuildBlueprintView extends StatelessWidget {
   final BuildBlueprint blueprint;
   final VoidCallback onBack;
+  final SubscriptionService? subscriptionService;
 
   const BuildBlueprintView({
     super.key,
     required this.blueprint,
     required this.onBack,
+    this.subscriptionService,
   });
 
   @override
@@ -19,43 +23,88 @@ class BuildBlueprintView extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         // Top Toolbar
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
             OutlinedButton.icon(
               onPressed: onBack,
               icon: const Icon(Icons.arrow_back, size: 16),
               label: const Text('Back to Studio'),
             ),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                // 1. Copy Prompt for Cursor / Claude
                 OutlinedButton.icon(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(
-                      text: '# Build Blueprint: ${blueprint.appName}\n\n'
-                          '## Product Overview\n${blueprint.productOverview}\n\n'
-                          '## Problem\n${blueprint.problem}\n\n'
-                          '## Target Users\n${blueprint.targetUsers}\n\n'
-                          '## Value Proposition\n${blueprint.valueProposition}\n\n'
-                          '## Core MVP Features\n${blueprint.coreMvpFeatures.join('\n- ')}\n\n'
-                          '## Database Design\n${blueprint.databaseDesign}\n',
-                    ));
+                    final prompt = const FileExportService().generateCursorPrompt(blueprint);
+                    Clipboard.setData(ClipboardData(text: prompt));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Blueprint copied to clipboard!')),
+                      const SnackBar(
+                        backgroundColor: AppColors.primary,
+                        content: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white, size: 16),
+                            SizedBox(width: 8),
+                            Text('📋 15-Section Agent Prompt copied to clipboard! (Ready for Cursor/Claude)'),
+                          ],
+                        ),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy Markdown'),
+                  label: const Text('Copy Prompt for AI'),
                 ),
-                const SizedBox(width: 10),
-                FilledButton.icon(
+
+                // 2. Export JSON Spec
+                OutlinedButton.icon(
                   onPressed: () {
+                    const FileExportService().downloadBlueprintJson(blueprint);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Blueprint saved to Project Archive!')),
+                      const SnackBar(
+                        backgroundColor: AppColors.primary,
+                        content: Text('📥 Structured Blueprint JSON downloaded!'),
+                      ),
                     );
                   },
-                  icon: const Icon(Icons.save_outlined, size: 16),
-                  label: const Text('Save Blueprint'),
+                  icon: const Icon(Icons.data_object, size: 16),
+                  label: const Text('Export JSON'),
+                ),
+
+                // 3. One-Click PROMPT.md Download (Primary CTA)
+                FilledButton.icon(
+                  onPressed: () {
+                    const FileExportService().downloadPromptMarkdown(blueprint);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: AppColors.primary,
+                        duration: const Duration(seconds: 4),
+                        content: Row(
+                          children: [
+                            const Icon(Icons.download_done, color: Colors.white, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '📥 Downloaded ${blueprint.appName}_PROMPT.md! Ready for Cursor, Claude Code, or Antigravity.',
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.download, size: 16),
+                  label: const Text('Download PROMPT.md'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),
@@ -130,9 +179,9 @@ class BuildBlueprintView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     '8. Database Schema (PostgreSQL / Supabase)',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),

@@ -1,6 +1,7 @@
 import '../models/app_item.dart';
 import '../models/competitor.dart';
 import '../models/market_trend.dart';
+import '../models/negative_review_mining.dart';
 import '../models/report_item.dart';
 import '../models/build_blueprint.dart';
 
@@ -75,6 +76,50 @@ class MockData {
       ],
       isWatchlisted: true,
       notes: 'Huge potential for a privacy-first indie alternative.',
+      negativeReviews: NegativeReviewMining(
+        totalAnalyzed: 420,
+        dissatisfactionRate: 24,
+        categoryDistribution: {
+          'Pricing & Auto-Renew Traps': 45,
+          'Audio Sync & Crashes': 25,
+          'Strict 30-min Free Limit': 18,
+          'Missing Offline Mode': 12,
+        },
+        goldenOpportunitySummary:
+            'Users are furious about being billed \$14.99/mo after a 3-day trial and the aggressive 30-minute free limit. A transparent \$0.05/min pay-as-you-go model or generous 2-hour offline local model will easily win their customers.',
+        sampleReviews: [
+          StoreReview(
+            author: 'Mark T. (Product Lead)',
+            rating: 1,
+            date: '3 days ago',
+            category: 'Pricing & Auto-Renew Traps',
+            comment:
+                'Charged \$14.99 right after the 3-day trial without any reminder email. The app locked my meeting notes behind a paywall when I needed them for a client call!',
+            builderOpportunity:
+                'Offer transparent upfront billing with an uncompressed markdown export guarantee even on free tier.',
+          ),
+          StoreReview(
+            author: 'Elena R. (Consultant)',
+            rating: 2,
+            date: '1 week ago',
+            category: 'Missing Offline Mode',
+            comment:
+                'Does not work on airplane mode or client sites without fast Wi-Fi. It refuses to process local audio unless connected to their cloud.',
+            builderOpportunity:
+                'Build on-device Whisper model support so offline consultants can record and transcribe anywhere.',
+          ),
+          StoreReview(
+            author: 'David K. (Engineer)',
+            rating: 1,
+            date: '2 weeks ago',
+            category: 'Audio Sync & Crashes',
+            comment:
+                'Crashed at the 48-minute mark during an executive sprint retro. Audio file got corrupted and support took 4 days to respond.',
+            builderOpportunity:
+                'Implement incremental chunked audio caching to local storage every 10 seconds to prevent data loss.',
+          ),
+        ],
+      ),
     ),
     const AppItem(
       id: 'app_2',
@@ -141,6 +186,40 @@ class MockData {
       ],
       isWatchlisted: true,
       notes: 'Strong revenue signal; opportunity in specialized ethnic diets.',
+      negativeReviews: NegativeReviewMining(
+        totalAnalyzed: 680,
+        dissatisfactionRate: 29,
+        categoryDistribution: {
+          'Ethnic & Curry Hallucinations': 42,
+          'Aggressive 3-Scan Paywall': 34,
+          'Missing Apple Health Sync': 14,
+          'Slow Server Processing': 10,
+        },
+        goldenOpportunitySummary:
+            'Reviewers hate that complex non-Western foods (curries, biryani, stir-fries) are hallucinated as generic pasta or salad, combined with an aggressive paywall after 3 scans. A culturally-trained vision model with a free 10 snaps/day limit will dominate this segment.',
+        sampleReviews: [
+          StoreReview(
+            author: 'Priya S.',
+            rating: 1,
+            date: '2 days ago',
+            category: 'Ethnic & Curry Hallucinations',
+            comment:
+                'Scanned a bowl of homemade chicken tikka and daal; it identified it as "Tomato Soup with Crackers - 150 kcal"! Totally useless for anyone eating non-American food.',
+            builderOpportunity:
+                'Fine-tune multimodal models with diverse culinary datasets with manual ingredient adjustment sliders.',
+          ),
+          StoreReview(
+            author: 'Marcus L.',
+            rating: 2,
+            date: '5 days ago',
+            category: 'Aggressive 3-Scan Paywall',
+            comment:
+                'Gives you only 3 scans before blocking everything with a \$59/year popup that you cannot even swipe away. Let people at least see if it works for a week!',
+            builderOpportunity:
+                'Provide 7 daily free scans supported by subtle rewarded sponsor ads, with an affordable \$29/year Pro tier.',
+          ),
+        ],
+      ),
     ),
     const AppItem(
       id: 'app_3',
@@ -207,6 +286,40 @@ class MockData {
       ],
       isWatchlisted: false,
       notes: 'Stable B2B utility with strong willingness to pay.',
+      negativeReviews: NegativeReviewMining(
+        totalAnalyzed: 310,
+        dissatisfactionRate: 21,
+        categoryDistribution: {
+          'Table & Financial Number Errors': 48,
+          'Strict 25MB File Cap': 28,
+          'Mobile Upload Timeouts': 16,
+          'No Tablet Stylus Support': 8,
+        },
+        goldenOpportunitySummary:
+            'Financial and legal professionals frequently complain that LLM summaries hallucinate numbers in tables and multi-column balance sheets. An app with verifiable OCR table extraction and direct Excel downloads will capture high-paying corporate users.',
+        sampleReviews: [
+          StoreReview(
+            author: 'Jonathan W. (Paralegal)',
+            rating: 1,
+            date: '4 days ago',
+            category: 'Table & Financial Number Errors',
+            comment:
+                'The AI mixed up the plaintiff and defendant liability percentages in a 40-page contract deposition. Could have cost our firm thousands if I had not double checked.',
+            builderOpportunity:
+                'Display dual-pane side-by-side highlighted source PDF paragraphs directly synced with generated answers.',
+          ),
+          StoreReview(
+            author: 'Sarah B. (Graduate Student)',
+            rating: 2,
+            date: '1 week ago',
+            category: 'Strict 25MB File Cap',
+            comment:
+                'Most academic books and scanned dissertations are 35-50MB. The app fails on upload with a generic error code instead of compressing or chunking.',
+            builderOpportunity:
+                'Implement automatic client-side PDF downsampling and chunked streaming upload for files up to 200MB.',
+          ),
+        ],
+      ),
     ),
     const AppItem(
       id: 'app_4',
