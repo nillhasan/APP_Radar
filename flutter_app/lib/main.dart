@@ -11,12 +11,13 @@ import 'data/repositories/supabase_watchlist_repository.dart';
 import 'services/ai/ai_service.dart';
 import 'services/auth/auth_service.dart';
 import 'widgets/app_shell.dart';
+import 'services/subscription/subscription_service.dart';
 
 const String supabaseUrl = 'https://eqemignoxkftfwdoxcjs.supabase.co';
 const String supabaseAnonKey =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxZW1pZ25veGtmdGZ3ZG94Y2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MzExNzMsImV4cCI6MjEwNTQwNzE3M30.HBiotZ18zShR-c1hTprqhP9HXzC4RCUDHuWUz15Zfpc';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
@@ -40,6 +41,7 @@ class AppRadarApp extends StatefulWidget {
 
 class _AppRadarAppState extends State<AppRadarApp> {
   late final AuthService _authService;
+  late final SubscriptionService _subscriptionService;
   late final AppRepository _appRepo;
   late final OpportunityRepository _oppRepo;
   late final MarketTrendRepository _trendRepo;
@@ -57,6 +59,7 @@ class _AppRadarAppState extends State<AppRadarApp> {
     } catch (_) {}
 
     _authService = AuthService(client: supabaseClient);
+    _subscriptionService = SubscriptionService();
 
     final mockRepo = MockAppRepository();
     if (supabaseClient != null) {
@@ -97,6 +100,7 @@ class _AppRadarAppState extends State<AppRadarApp> {
         watchlistRepo: _watchlistRepo,
         aiService: _aiService,
         authService: _authService,
+        subscriptionService: _subscriptionService,
       ),
     );
   }

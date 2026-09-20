@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/watchlist_repository.dart';
+import '../../services/subscription/subscription_service.dart';
+import '../../widgets/pricing/pricing_modal.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/signal_bar.dart';
 import '../../core/utils/formatters.dart';
@@ -11,6 +13,7 @@ class AppDetailView extends StatefulWidget {
   final VoidCallback onBack;
   final ValueChanged<AppItem> onBuildWithAI;
   final WatchlistRepository? watchlistRepo;
+  final SubscriptionService? subscriptionService;
 
   const AppDetailView({
     super.key,
@@ -18,6 +21,7 @@ class AppDetailView extends StatefulWidget {
     required this.onBack,
     required this.onBuildWithAI,
     this.watchlistRepo,
+    this.subscriptionService,
   });
 
   @override
@@ -33,6 +37,9 @@ class _AppDetailViewState extends State<AppDetailView> {
   void initState() {
     super.initState();
     _checkWatchlist();
+    if (widget.subscriptionService != null && widget.subscriptionService!.canViewTeardown(app.id)) {
+      widget.subscriptionService!.recordTeardownView(app.id);
+    }
   }
 
   Future<void> _checkWatchlist() async {
@@ -375,6 +382,8 @@ class _AppDetailViewState extends State<AppDetailView> {
   }
 
   Widget _buildAiTeardownCard() {
+    final isLocked = widget.subscriptionService != null && !widget.subscriptionService!.canViewTeardown(app.id);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -398,11 +407,63 @@ class _AppDetailViewState extends State<AppDetailView> {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 12),
-          _teardownItem('What this app does', app.whatItDoes),
-          _teardownItem('Target User Segment', app.targetUser),
-          _teardownItem('Why it is growing', app.whyGrowing),
-          _teardownItem('Core Value Proposition', app.coreValueProp),
-          _teardownItem('Monetization Model', app.monetization),
+          if (isLocked) ...[
+            _teardownItem('What this app does', app.whatItDoes),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    AppColors.aiPurpleLight,
+                    AppColors.primaryLight,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.lock_outline, size: 32, color: AppColors.aiPurple),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Daily Free Teardown Limit Reached (3/3)',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'You have explored all 3 complimentary AI opportunity teardowns today. Upgrade to Pro Builder for unlimited teardowns, full architecture blueprints, and store telemetry.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    onPressed: () => PricingModal.show(
+                      context,
+                      subscriptionService: widget.subscriptionService!,
+                      featureTrigger: 'Unlock unlimited daily AI opportunity teardowns and full architecture specs with Pro Builder.',
+                    ),
+                    icon: const Icon(Icons.bolt, size: 16),
+                    label: const Text('Upgrade to Pro Builder — \$29/mo'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.aiPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            _teardownItem('What this app does', app.whatItDoes),
+            _teardownItem('Target User Segment', app.targetUser),
+            _teardownItem('Why it is growing', app.whyGrowing),
+            _teardownItem('Core Value Proposition', app.coreValueProp),
+            _teardownItem('Monetization Model', app.monetization),
+          ],
         ],
       ),
     );
@@ -582,11 +643,28 @@ class _AppDetailViewState extends State<AppDetailView> {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            onPressed: () => widget.onBuildWithAI(app),
-            icon: const Icon(Icons.auto_awesome, size: 18),
-            label: const Text('Generate 14-Section Build Blueprint'),
+            onPressed: () {
+              if (widget.subscriptionService != null && !widget.subscriptionService!.canGenerateBlueprint()) {
+                PricingModal.show(
+                  context,
+                  subscriptionService: widget.subscriptionService!,
+                  featureTrigger: '14-Section AI Architecture Blueprints are an exclusive Pro Builder feature. Upgrade now to generate full product specifications, database schemas, and engineering roadmaps.',
+                );
+                return;
+              }
+              widget.onBuildWithAI(app);
+            },
+            icon: Icon(
+              (widget.subscriptionService?.isFree ?? false) ? Icons.lock_outline : Icons.auto_awesome,
+              size: 18,
+            ),
+            label: Text(
+              (widget.subscriptionService?.isFree ?? false)
+                  ? 'Generate Blueprint (Unlock with Pro)'
+                  : 'Generate 14-Section Build Blueprint',
+            ),
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: (widget.subscriptionService?.isFree ?? false) ? AppColors.aiPurple : AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
             ),

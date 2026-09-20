@@ -4,6 +4,8 @@ import '../../data/models/app_item.dart';
 import '../../data/models/build_blueprint.dart';
 import '../../data/repositories/app_repository.dart';
 import '../../services/ai/ai_service.dart';
+import '../../services/subscription/subscription_service.dart';
+import '../../widgets/pricing/pricing_modal.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/score_badge.dart';
 
@@ -11,12 +13,14 @@ class BuildWithAIView extends StatefulWidget {
   final AppRepository appRepo;
   final AIService aiService;
   final ValueChanged<BuildBlueprint> onBlueprintGenerated;
+  final SubscriptionService? subscriptionService;
 
   const BuildWithAIView({
     super.key,
     required this.appRepo,
     required this.aiService,
     required this.onBlueprintGenerated,
+    this.subscriptionService,
   });
 
   @override
@@ -151,9 +155,18 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
                   else
                     FilledButton.icon(
                       onPressed: () => _generateBlueprint(_selectedApp!),
-                      icon: const Icon(Icons.auto_awesome, size: 18),
-                      label: const Text('Generate Complete 14-Section Build Blueprint'),
+                      icon: Icon(
+                        (widget.subscriptionService?.isFree ?? false) ? Icons.lock_outline : Icons.auto_awesome,
+                        size: 18,
+                      ),
+                      label: Text(
+                        (widget.subscriptionService?.isFree ?? false)
+                            ? 'Generate Blueprint (Unlock with Pro)'
+                            : 'Generate Complete 14-Section Build Blueprint',
+                      ),
                       style: FilledButton.styleFrom(
+                        backgroundColor: (widget.subscriptionService?.isFree ?? false) ? AppColors.aiPurple : AppColors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       ),
                     ),
@@ -212,6 +225,16 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
   }
 
   Future<void> _generateBlueprint(AppItem app) async {
+    if (widget.subscriptionService != null && !widget.subscriptionService!.canGenerateBlueprint()) {
+      PricingModal.show(
+        context,
+        subscriptionService: widget.subscriptionService!,
+        featureTrigger:
+            '14-Section AI Architecture Blueprints are an exclusive Pro Builder feature. Upgrade now to generate full product specifications, PostgreSQL database schemas, API endpoints, and engineering roadmaps.',
+      );
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
       _generationStep = 'Analyzing market telemetry and user pain points...';

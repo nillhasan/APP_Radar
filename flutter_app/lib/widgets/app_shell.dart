@@ -21,7 +21,9 @@ import '../data/repositories/report_repository.dart';
 import '../data/repositories/watchlist_repository.dart';
 import '../services/ai/ai_service.dart';
 import '../services/auth/auth_service.dart';
+import '../services/subscription/subscription_service.dart';
 import 'auth/auth_modal.dart';
+import 'pricing/pricing_modal.dart';
 
 class AppShell extends StatefulWidget {
   final AppRepository appRepo;
@@ -31,6 +33,7 @@ class AppShell extends StatefulWidget {
   final WatchlistRepository watchlistRepo;
   final AIService aiService;
   final AuthService authService;
+  final SubscriptionService subscriptionService;
 
   const AppShell({
     super.key,
@@ -41,6 +44,7 @@ class AppShell extends StatefulWidget {
     required this.watchlistRepo,
     required this.aiService,
     required this.authService,
+    required this.subscriptionService,
   });
 
   @override
@@ -51,6 +55,7 @@ class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   AppItem? _selectedAppForDetail;
   BuildBlueprint? _activeBlueprint;
+
 
   final List<String> _navTitles = const [
     'Dashboard',
@@ -103,16 +108,18 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    widget.authService.addListener(_onAuthChanged);
+    widget.authService.addListener(_onServiceStateChanged);
+    widget.subscriptionService.addListener(_onServiceStateChanged);
   }
 
   @override
   void dispose() {
-    widget.authService.removeListener(_onAuthChanged);
+    widget.authService.removeListener(_onServiceStateChanged);
+    widget.subscriptionService.removeListener(_onServiceStateChanged);
     super.dispose();
   }
 
-  void _onAuthChanged() {
+  void _onServiceStateChanged() {
     if (mounted) setState(() {});
   }
 
@@ -245,6 +252,46 @@ class _AppShellState extends State<AppShell> {
           },
         ),
         const SizedBox(width: 8),
+        // Plan Badge & Upgrade Action
+        if (widget.subscriptionService.isFree) ...[
+          OutlinedButton.icon(
+            onPressed: () => PricingModal.show(
+              context,
+              subscriptionService: widget.subscriptionService,
+            ),
+            icon: const Icon(Icons.bolt, size: 15, color: AppColors.aiPurple),
+            label: const Text('Upgrade Pro', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.aiPurple)),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.aiPurple.withValues(alpha: 0.4)),
+              backgroundColor: AppColors.aiPurpleLight,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.workspace_premium, size: 14, color: Colors.white),
+                SizedBox(width: 4),
+                Text(
+                  'PRO BUILDER',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: _buildAuthHeaderButton(isDesktop),
@@ -284,6 +331,15 @@ class _AppShellState extends State<AppShell> {
           _navigateToTab(5); // Watchlist
         } else if (val == 'settings') {
           _navigateToTab(9); // Settings
+        } else if (val == 'pricing') {
+          PricingModal.show(context, subscriptionService: widget.subscriptionService);
+        } else if (val == 'toggle_plan') {
+          widget.subscriptionService.toggleTier();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Switched to ${widget.subscriptionService.isPro ? "Pro Builder" : "Free Starter"} plan.')),
+            );
+          }
         } else if (val == 'signout') {
           await auth.signOut();
           if (mounted) {
@@ -312,18 +368,49 @@ class _AppShellState extends State<AppShell> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.successLight,
+                  color: widget.subscriptionService.isPro ? AppColors.aiPurpleLight : AppColors.successLight,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'FREE BUILDER PLAN',
-                  style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.w700),
+                child: Text(
+                  widget.subscriptionService.isPro ? 'PRO BUILDER PLAN' : 'FREE BUILDER PLAN',
+                  style: TextStyle(
+                    color: widget.subscriptionService.isPro ? AppColors.aiPurple : AppColors.success,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const Divider(),
             ],
           ),
         ),
+        PopupMenuItem<String>(
+          value: 'pricing',
+          child: Row(
+            children: [
+              const Icon(Icons.bolt, size: 18, color: AppColors.aiPurple),
+              const SizedBox(width: 8),
+              Text(
+                widget.subscriptionService.isFree ? 'Upgrade to Pro' : 'Pricing Plans',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.aiPurple),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'toggle_plan',
+          child: Row(
+            children: [
+              const Icon(Icons.swap_horiz, size: 18, color: AppColors.textSecondary),
+              const SizedBox(width: 8),
+              Text(
+                'Switch to ${widget.subscriptionService.isPro ? "Free" : "Pro"} (Demo)',
+                style: const TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
         const PopupMenuItem<String>(
           value: 'watchlist',
           child: Row(
@@ -468,33 +555,55 @@ class _AppShellState extends State<AppShell> {
         const Divider(),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primaryBorder),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.bolt, color: AppColors.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Pro Workspace',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
-                      ),
-                      Text(
-                        '128 apps tracked',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
+          child: InkWell(
+            onTap: widget.subscriptionService.isFree
+                ? () => PricingModal.show(context, subscriptionService: widget.subscriptionService)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: widget.subscriptionService.isPro ? AppColors.primaryLight : AppColors.aiPurpleLight,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: widget.subscriptionService.isPro
+                      ? AppColors.primaryBorder
+                      : AppColors.aiPurple.withValues(alpha: 0.3),
                 ),
-              ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    widget.subscriptionService.isPro ? Icons.workspace_premium : Icons.bolt,
+                    color: widget.subscriptionService.isPro ? AppColors.primary : AppColors.aiPurple,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.subscriptionService.isPro ? 'Pro Builder Active' : 'Upgrade to Pro',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: widget.subscriptionService.isPro ? AppColors.primary : AppColors.aiPurple,
+                          ),
+                        ),
+                        Text(
+                          widget.subscriptionService.isPro
+                              ? 'All features unlocked'
+                              : '${widget.subscriptionService.remainingFreeTeardowns}/3 free teardowns left',
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.subscriptionService.isFree)
+                    const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.aiPurple),
+                ],
+              ),
             ),
           ),
         ),
@@ -507,6 +616,7 @@ class _AppShellState extends State<AppShell> {
       return AppDetailView(
         app: _selectedAppForDetail!,
         watchlistRepo: widget.watchlistRepo,
+        subscriptionService: widget.subscriptionService,
         onBack: () => setState(() => _selectedAppForDetail = null),
         onBuildWithAI: (app) {
           setState(() {
@@ -568,6 +678,7 @@ class _AppShellState extends State<AppShell> {
         return BuildWithAIView(
           appRepo: widget.appRepo,
           aiService: widget.aiService,
+          subscriptionService: widget.subscriptionService,
           onBlueprintGenerated: _openBlueprint,
         );
       case 9:
