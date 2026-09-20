@@ -70,8 +70,8 @@ void main() {
       expect(find.text('Top Paid'), findsOneWidget);
       expect(find.text('Top Grossing'), findsOneWidget);
 
-      // Verify trend delta badges render (+2, etc.)
-      expect(find.text('+2'), findsWidgets);
+      // Verify trend delta badges render
+      expect(find.byIcon(Icons.arrow_drop_up), findsWidgets);
 
       // Tap on an app item
       final appNoteTaker = find.text('AI Note Taker');
@@ -81,6 +81,46 @@ void main() {
 
       expect(clickedApp, isNotNull);
       expect(clickedApp!.name, equals('AI Note Taker'));
+    });
+
+    testWidgets('Dynamically updates regional revenue and headers when changing country', (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: TopChartsLeaderboard(
+                apps: testApps,
+                onOpenApp: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Default is US
+      expect(find.text('US STORE TELEMETRY'), findsOneWidget);
+
+      // Tap Region Dropdown and select United Kingdom
+      final ukOption = find.text('🇬🇧 United Kingdom');
+      // In the dropdown button, current value is displayed
+      final regionDropdown = find.text('🇺🇸 United States');
+      expect(regionDropdown, findsOneWidget);
+      await tester.tap(regionDropdown);
+      await tester.pumpAndSettle();
+
+      // Tap UK in popup menu
+      expect(ukOption, findsWidgets);
+      await tester.tap(ukOption.last);
+      await tester.pumpAndSettle();
+
+      // Verify UK telemetry is now active
+      expect(find.text('UK STORE TELEMETRY'), findsOneWidget);
+      expect(find.textContaining('United Kingdom 🇬🇧'), findsWidgets);
     });
 
     testWidgets('Renders responsive tab bar on mobile screens', (tester) async {

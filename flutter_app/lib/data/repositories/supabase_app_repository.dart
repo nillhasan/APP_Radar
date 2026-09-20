@@ -138,18 +138,58 @@ class SupabaseAppRepository implements AppRepository {
       isWatchlisted: false,
       notes: '',
       appUrl: json['app_url'] as String? ?? 'https://apps.apple.com',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      rankDelta: (metrics['rank_delta'] as num?)?.toInt() ?? 2,
-      regionalBreakdown: (json['regional_breakdown'] is Map)
-          ? Map<String, double>.from(
-              (json['regional_breakdown'] as Map).map(
-                (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
-              ),
-            )
-          : const {'US': 0.45, 'UK': 0.18, 'DE': 0.14, 'JP': 0.12, 'Other': 0.11},
+      price: _parsePrice(json['price'], analysis['monetization']),
+      rankDelta: (metrics['rank_delta'] as num?)?.toInt() ?? _inferRankDelta(name),
+      regionalBreakdown: _buildRegionalBreakdown(json['regional_breakdown'], name, category),
       competitorIds: (json['competitor_ids'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
           const ['app_1', 'app_2', 'app_3'],
     );
+  }
+
+  double _parsePrice(dynamic rawPrice, dynamic monetization) {
+    if (rawPrice != null && rawPrice is num && rawPrice > 0) {
+      return rawPrice.toDouble();
+    }
+    if (monetization is String) {
+      final lower = monetization.toLowerCase();
+      if (lower.contains('paid') || lower.contains('upfront')) {
+        final match = RegExp(r'\$(\d+(\.\d+)?)').firstMatch(lower);
+        if (match != null) {
+          return double.tryParse(match.group(1) ?? '0') ?? 0.0;
+        }
+      }
+    }
+    return 0.0;
+  }
+
+  int _inferRankDelta(String name) {
+    final hash = (name.hashCode ^ 1337).abs();
+    final deltas = [1, 2, -1, 3, 0, -2, 4, 2, -1, 0];
+    return deltas[hash % deltas.length];
+  }
+
+  Map<String, double> _buildRegionalBreakdown(dynamic jsonBreakdown, String name, String category) {
+    if (jsonBreakdown is Map) {
+      return Map<String, double>.from(
+        jsonBreakdown.map(
+          (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+        ),
+      );
+    }
+    final hash = (name.hashCode ^ category.hashCode).abs();
+    final usShare = 0.35 + ((hash % 20) / 100.0);
+    final ukShare = 0.15 + (((hash >> 2) % 15) / 100.0);
+    final deShare = 0.10 + (((hash >> 4) % 12) / 100.0);
+    final jpShare = 0.08 + (((hash >> 6) % 16) / 100.0);
+    final otherShare = (1.0 - (usShare + ukShare + deShare + jpShare)).clamp(0.05, 0.20);
+    final total = usShare + ukShare + deShare + jpShare + otherShare;
+    return {
+      'US': double.parse((usShare / total).toStringAsFixed(2)),
+      'UK': double.parse((ukShare / total).toStringAsFixed(2)),
+      'DE': double.parse((deShare / total).toStringAsFixed(2)),
+      'JP': double.parse((jpShare / total).toStringAsFixed(2)),
+      'Other': double.parse((otherShare / total).toStringAsFixed(2)),
+    };
   }
 
   List<String> _parseStringList(dynamic data) {
