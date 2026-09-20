@@ -68,9 +68,10 @@ class AuthService extends ChangeNotifier {
 
   Future<bool> signInWithGoogle() async {
     if (_client == null) throw Exception('Supabase client not initialized');
+    final redirectUrl = kIsWeb ? '${Uri.base.origin}/' : 'io.supabase.appradar://login-callback/';
     return await _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? null : 'io.supabase.appradar://login-callback/',
+      redirectTo: redirectUrl,
     );
   }
 
