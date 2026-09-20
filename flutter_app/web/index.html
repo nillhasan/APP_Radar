@@ -1,46 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <!-- iOS meta tags & icons -->
+  <title>AppRadar - AI Mobile App Market Intelligence & Opportunity Discovery</title>
+  <meta name="description" content="AI-computed market velocity, store signals, and competitive review sentiment across 128+ tracked mobile applications.">
+  <meta name="keywords" content="app analytics, app store intelligence, mobile market trends, app opportunities, pwa, saas">
+  <meta name="author" content="AppRadar Team">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AppRadar - Mobile App Intelligence & Opportunity Discovery">
+  <meta property="og:description" content="Find unaddressed feature gaps and pricing moats in mobile apps with AI-powered market telemetry.">
+  <meta property="og:image" content="icons/Icon-512.png">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AppRadar - Mobile App Intelligence">
+  <meta name="twitter:description" content="Track high-growth mobile applications and revenue estimates.">
+  <meta name="twitter:image" content="icons/Icon-512.png">
+
+  <!-- Progressive Web App (PWA) Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="app_radar">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AppRadar">
+  <meta name="application-name" content="AppRadar">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="msapplication-navbutton-color" content="#0F172A">
+  <meta name="msapplication-TileColor" content="#0F172A">
+  <meta name="msapplication-TileImage" content="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>app_radar</title>
+  <!-- Icons -->
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png"/>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0B0F19;
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* PWA Splash Preloader */
+    #appradar-preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 40%, #1E293B 0%, #0B0F19 100%);
+      z-index: 99999;
+      transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+    }
+
+    .radar-pulse-box {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .radar-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid rgba(59, 130, 246, 0.4);
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    .radar-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .radar-core {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 28px rgba(59, 130, 246, 0.5);
+      position: relative;
+      z-index: 2;
+    }
+
+    .radar-core svg {
+      width: 32px;
+      height: 32px;
+      fill: #FFFFFF;
+    }
+
+    .app-brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+
+    .app-brand-subtitle {
+      font-size: 13px;
+      color: #94A3B8;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      margin-bottom: 20px;
+    }
+
+    .loading-bar-wrapper {
+      width: 180px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-bar-active {
+      width: 60px;
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+      border-radius: 4px;
+      position: absolute;
+      animation: load-slide 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes load-slide {
+      0% { left: -60px; }
+      100% { left: 180px; }
+    }
+
+    .preloader-hidden {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <!-- PWA Animated Splash Preloader -->
+  <div id="appradar-preloader">
+    <div class="radar-pulse-box">
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="radar-core">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" opacity="0.4"/>
+          <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="app-brand-title">AppRadar</div>
+    <div class="app-brand-subtitle">Initializing Market Intelligence Engine...</div>
+    <div class="loading-bar-wrapper">
+      <div class="loading-bar-active"></div>
+    </div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <!-- PWA Install Prompt & Service Worker Controller -->
+  <script>
+    // Global PWA deferred install prompt
+    window.deferredPWAInstallPrompt = null;
+    window.isPWAInstalled = false;
+
+    // Check if launched as standalone PWA
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      window.isPWAInstalled = true;
+      console.log('AppRadar: Running in standalone PWA mode');
+    }
+
+    // Capture install prompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPWAInstallPrompt = e;
+      console.log('AppRadar PWA: install prompt captured and ready');
+      window.dispatchEvent(new CustomEvent('appradar-pwa-installable'));
+    });
+
+    window.addEventListener('appinstalled', () => {
+      window.deferredPWAInstallPrompt = null;
+      window.isPWAInstalled = true;
+      console.log('AppRadar PWA: Installed successfully!');
+    });
+
+    // Helper function callable from Flutter or web UI to trigger PWA installation
+    window.triggerPWAInstall = async function() {
+      if (window.deferredPWAInstallPrompt) {
+        window.deferredPWAInstallPrompt.prompt();
+        const choice = await window.deferredPWAInstallPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          window.deferredPWAInstallPrompt = null;
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Auto-remove preloader when Flutter first paints or boots
+    function removePreloader() {
+      const preloader = document.getElementById('appradar-preloader');
+      if (preloader) {
+        preloader.classList.add('preloader-hidden');
+        setTimeout(() => preloader.remove(), 500);
+      }
+    }
+
+    // Watch for Flutter engine load
+    window.addEventListener('flutter-first-frame', removePreloader);
+    // Fallback timer in case event is delayed
+    setTimeout(removePreloader, 4000);
+  </script>
+
+  <!-- Flutter Bootstrap Script -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

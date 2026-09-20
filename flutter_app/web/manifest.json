@@ -1,13 +1,27 @@
 {
-    "name": "app_radar",
-    "short_name": "app_radar",
-    "start_url": ".",
+    "name": "AppRadar - Mobile App Intelligence & Opportunity Radar",
+    "short_name": "AppRadar",
+    "start_url": "./",
+    "scope": "./",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "display_override": [
+        "window-controls-overlay",
+        "standalone",
+        "minimal-ui"
+    ],
+    "background_color": "#0F172A",
+    "theme_color": "#3B82F6",
+    "description": "AI-powered mobile app market intelligence, opportunity discovery, revenue estimates, and teardowns.",
+    "orientation": "any",
     "prefer_related_applications": false,
+    "categories": [
+        "business",
+        "productivity",
+        "utilities",
+        "finance"
+    ],
+    "lang": "en",
+    "dir": "ltr",
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +44,44 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "description": "View live top charts and market velocity",
+            "url": "./",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Competitor Matrix",
+            "short_name": "Competitors",
+            "description": "Benchmark competitor apps and features",
+            "url": "./#competitors",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Build With AI",
+            "short_name": "Build AI",
+            "description": "Generate 14-section AI build blueprints",
+            "url": "./#build",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
         }
     ]
 }

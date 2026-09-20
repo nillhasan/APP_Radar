@@ -24,6 +24,7 @@ import '../services/auth/auth_service.dart';
 import '../services/subscription/subscription_service.dart';
 import 'auth/auth_modal.dart';
 import 'pricing/pricing_modal.dart';
+import 'pwa/pwa_install_modal.dart';
 
 class AppShell extends StatefulWidget {
   final AppRepository appRepo;
@@ -313,6 +314,12 @@ class _AppShellState extends State<AppShell> {
             );
           },
         ),
+        if (isDesktop)
+          IconButton(
+            tooltip: 'Install AppRadar PWA',
+            icon: const Icon(Icons.install_desktop_rounded, color: AppColors.textSecondary, size: 20),
+            onPressed: () => PwaInstallModal.show(context),
+          ),
         const SizedBox(width: 8),
         // Plan Badge & Upgrade Action
         if (widget.subscriptionService.isFree) ...[
@@ -651,6 +658,21 @@ class _AppShellState extends State<AppShell> {
             },
           ),
         ),
+        if (isDrawer) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            child: ListTile(
+              dense: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              leading: const Icon(Icons.install_mobile_rounded, size: 20, color: AppColors.primary),
+              title: const Text('Install App (PWA)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              onTap: () {
+                Navigator.pop(context);
+                PwaInstallModal.show(context);
+              },
+            ),
+          ),
+        ],
         const Divider(),
         Padding(
           padding: const EdgeInsets.all(16),

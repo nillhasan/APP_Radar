@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/pwa/pwa_install_modal.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -14,7 +15,7 @@ class _SettingsViewState extends State<SettingsView> {
   bool _weeklyDigest = true;
   bool _highPotentialAlerts = true;
   String _selectedAiModel = 'Gemini 3.8 Flash (Recommended)';
-  String _reportScheduleTime = '08:00 AM UTC';
+  final String _reportScheduleTime = '08:00 AM UTC';
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +131,43 @@ class _SettingsViewState extends State<SettingsView> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text('READY', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Progressive Web App (PWA) & Offline Access
+        _buildSettingsCard(
+          title: 'Progressive Web App (PWA) & Offline Access',
+          icon: Icons.install_desktop_rounded,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.install_mobile_rounded, color: AppColors.primary, size: 22),
+              ),
+              title: const Text(
+                'Install AppRadar to Desktop / Mobile',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              subtitle: const Text(
+                'Run as a frameless standalone application with offline telemetry caching and 1-tap launch.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+              trailing: ElevatedButton.icon(
+                onPressed: () => PwaInstallModal.show(context),
+                icon: const Icon(Icons.download_rounded, size: 14, color: Colors.white),
+                label: const Text('Install App', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
               ),
             ),
           ],
