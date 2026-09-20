@@ -32,7 +32,7 @@ void main() {
 
       // Verify Search Bar is present
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.textContaining('Search any app to benchmark'), findsOneWidget);
+      expect(find.textContaining('Search any app'), findsOneWidget);
 
       // Verify Benchmark Focus Banner is present
       expect(find.text('BENCHMARK FOCUS'), findsWidgets);

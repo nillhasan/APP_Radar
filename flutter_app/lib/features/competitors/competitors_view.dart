@@ -86,10 +86,20 @@ class _CompetitorsViewState extends State<CompetitorsView> {
 
   Future<void> _loadApps() async {
     try {
-      final apps = await widget.appRepo.getAllApps();
+      final rawApps = await widget.appRepo.getAllApps();
       if (!mounted) return;
+
+      // Deduplicate apps by ID to prevent any duplicate issues
+      final seenIds = <String>{};
+      final uniqueApps = <AppItem>[];
+      for (final a in rawApps) {
+        if (seenIds.add(a.id)) {
+          uniqueApps.add(a);
+        }
+      }
+
       setState(() {
-        _allApps = apps.isNotEmpty ? apps : MockData.apps;
+        _allApps = uniqueApps.isNotEmpty ? uniqueApps : MockData.apps;
         _isLoading = false;
 
         if (_selectedApp == null) {
@@ -138,7 +148,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
         rating: focusApp.rating,
         reviews: focusApp.reviewCount,
         pricing: _formatPricing(focusApp.price, focusApp.monetization),
-        marketPosition: 'High growth challenger with strong mobile UX',
+        marketPosition: 'Benchmark focus target with ${focusApp.opportunityScore} score',
         iconUrl: focusApp.iconUrl,
         iconEmoji: focusApp.iconEmoji,
         isFocus: true,
@@ -172,7 +182,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
       }
     }
 
-    // If still under 3 rivals, add top tracked apps
+    // If still under 3 rivals, add other tracked apps
     if (rivals.length < 3) {
       final otherApps = _allApps.where((a) => a.id != focusApp.id && !rivals.any((r) => r.id == a.id)).toList();
       otherApps.sort((a, b) => b.revenueEstimate.compareTo(a.revenueEstimate));
@@ -316,7 +326,6 @@ class _CompetitorsViewState extends State<CompetitorsView> {
 
   bool _checkFeatureSupport(CompetitorEntry entry, String feature, AppItem focusApp) {
     if (entry.isFocus) {
-      // Focus app has its own core and AI features
       final text = '${focusApp.coreFeatures.join(' ')} ${focusApp.aiFeatures.join(' ')} ${focusApp.description} ${focusApp.whatItDoes}'.toLowerCase();
       final words = feature.toLowerCase().split(' ');
       for (final w in words) {
@@ -332,18 +341,202 @@ class _CompetitorsViewState extends State<CompetitorsView> {
       for (final w in words) {
         if (w.length > 3 && text.contains(w)) return true;
       }
-      // Deterministic realistic hash for secondary features
       final hash = (entry.id.hashCode ^ feature.hashCode).abs();
-      return hash % 3 != 0; // ~66% chance of feature match
+      return hash % 3 != 0;
     }
 
-    // Mock fallback
     final mock = MockData.competitorsForNoteTaker.where((m) => m.name == entry.name).toList();
     if (mock.isNotEmpty) {
       return mock.first.featureMatrix[feature] ?? false;
     }
 
     return (entry.name.hashCode ^ feature.hashCode).abs() % 2 == 0;
+  }
+
+  void _openAppPickerDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        String dialogSearch = '';
+        String dialogCategory = _selectedCategory;
+
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            final filtered = _allApps.where((a) {
+              final matchesQuery = dialogSearch.isEmpty ||
+                  a.name.toLowerCase().contains(dialogSearch.toLowerCase()) ||
+                  a.developer.toLowerCase().contains(dialogSearch.toLowerCase());
+              final matchesCat = dialogCategory == 'All Categories' ||
+                  a.category.toLowerCase() == dialogCategory.toLowerCase();
+              return matchesQuery && matchesCat;
+            }).toList();
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Container(
+                width: 680,
+                height: 560,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.radar_rounded, color: AppColors.primary, size: 24),
+                            SizedBox(width: 10),
+                            Text(
+                              'Select Benchmark Focus Target',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.of(ctx).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Dialog Search Bar
+                    TextField(
+                      onChanged: (val) => setDialogState(() => dialogSearch = val),
+                      decoration: InputDecoration(
+                        hintText: 'Filter by app or developer name...',
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
+                        filled: true,
+                        fillColor: AppColors.surfaceSecondary,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Category Filter Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: AppConstants.categories.take(7).map((cat) {
+                          final isSelected = dialogCategory == cat;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Text(cat),
+                              selected: isSelected,
+                              onSelected: (_) => setDialogState(() => dialogCategory = cat),
+                              backgroundColor: AppColors.surfaceSecondary,
+                              selectedColor: AppColors.primaryLight,
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected ? AppColors.primary : AppColors.border,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+
+                    // Apps List
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No applications found matching criteria.',
+                                style: TextStyle(color: AppColors.textMuted),
+                              ),
+                            )
+                          : ListView.separated(
+                              itemCount: filtered.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1),
+                              itemBuilder: (_, index) {
+                                final app = filtered[index];
+                                final isSelected = app.id == _selectedApp?.id;
+
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  leading: AppIconWidget(
+                                    iconUrl: app.iconUrl,
+                                    iconEmoji: app.iconEmoji,
+                                    size: 36,
+                                    borderRadius: 8,
+                                  ),
+                                  title: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          app.name,
+                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'CURRENT',
+                                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  subtitle: Text(
+                                    '${app.developer} • ${app.category} • ${app.rating} ⭐ (${_formatReviews(app.reviewCount)})',
+                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                  ),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryLight,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '${app.opportunityScore} Score',
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedApp = app;
+                                      _searchController.clear();
+                                    });
+                                    Navigator.of(ctx).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -361,11 +554,6 @@ class _CompetitorsViewState extends State<CompetitorsView> {
     final competitors = _buildCompetitors(focusApp);
     final features = _buildDynamicFeatures(focusApp);
 
-    // Get apps matching current category selection for quick-picker
-    final categoryApps = _selectedCategory == 'All Categories'
-        ? _allApps
-        : _allApps.where((a) => a.category.toLowerCase() == _selectedCategory.toLowerCase()).toList();
-
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
@@ -375,8 +563,8 @@ class _CompetitorsViewState extends State<CompetitorsView> {
               'Benchmark market leaders and emerging alternatives to detect unaddressed feature gaps and pricing moats.',
         ),
 
-        // SEARCH & APP SELECTION BAR
-        _buildSearchBarSection(categoryApps),
+        // SEARCH & CATEGORY CONTROL BAR
+        _buildSearchAndControlBar(),
         const SizedBox(height: 16),
 
         // ACTIVE FOCUS APP BANNER
@@ -401,7 +589,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
     );
   }
 
-  Widget _buildSearchBarSection(List<AppItem> categoryApps) {
+  Widget _buildSearchAndControlBar() {
     final searchResults = _filteredSearchResults;
 
     return Container(
@@ -426,12 +614,11 @@ class _CompetitorsViewState extends State<CompetitorsView> {
             children: [
               // Search Input Field
               Expanded(
-                flex: 3,
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText: 'Search any app to benchmark (e.g. Learna, Notability, SpeakEasy, Scanner Pro...)',
+                    hintText: 'Search any app or competitor (e.g. Learna, Notability, SpeakEasy, Scanner Pro, Calm...)',
                     hintStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
                     suffixIcon: _searchController.text.isNotEmpty
@@ -461,107 +648,67 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
 
-              // Category Filter Dropdown
-              Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
+              // "Browse All Apps" Button
+              ElevatedButton.icon(
+                onPressed: _openAppPickerDialog,
+                icon: const Icon(Icons.apps_rounded, size: 16, color: Colors.white),
+                label: Text(
+                  'Browse Apps (${_allApps.length})',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: AppConstants.categories.contains(_selectedCategory)
-                        ? _selectedCategory
-                        : 'All Categories',
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppColors.textSecondary),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                    items: AppConstants.categories.map((cat) {
-                      return DropdownMenuItem(
-                        value: cat,
-                        child: Text(cat),
-                      );
-                    }).toList(),
-                    onChanged: (newCat) {
-                      if (newCat != null) {
-                        setState(() {
-                          _selectedCategory = newCat;
-                          // If category changed, auto-select first app in category
-                          if (newCat != 'All Categories') {
-                            final match = _allApps.where(
-                              (a) => a.category.toLowerCase() == newCat.toLowerCase(),
-                            ).toList();
-                            if (match.isNotEmpty) {
-                              _selectedApp = match.first;
-                            }
-                          }
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              // Quick App Dropdown Selector
-              Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primaryBorder),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _allApps.any((a) => a.id == _selectedApp?.id) ? _selectedApp?.id : null,
-                    hint: const Text(
-                      'Select App...',
-                      style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600),
-                    ),
-                    icon: const Icon(Icons.arrow_drop_down_circle_outlined, size: 18, color: AppColors.primary),
-                    items: categoryApps.map((app) {
-                      return DropdownMenuItem(
-                        value: app.id,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(app.iconEmoji, style: const TextStyle(fontSize: 14)),
-                            const SizedBox(width: 8),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 180),
-                              child: Text(
-                                app.name,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (appId) {
-                      if (appId != null) {
-                        final found = _allApps.where((a) => a.id == appId).toList();
-                        if (found.isNotEmpty) {
-                          setState(() {
-                            _selectedApp = found.first;
-                            _searchController.clear();
-                          });
-                        }
-                      }
-                    },
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ],
+          ),
+
+          // Horizontal Category Filter Chips (Crash-proof & ultra clean)
+          const SizedBox(height: 14),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: AppConstants.categories.map((cat) {
+                final isSelected = _selectedCategory == cat;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(cat),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        _selectedCategory = cat;
+                        if (cat != 'All Categories') {
+                          final match = _allApps.where(
+                            (a) => a.category.toLowerCase() == cat.toLowerCase(),
+                          ).toList();
+                          if (match.isNotEmpty) {
+                            _selectedApp = match.first;
+                          }
+                        }
+                      });
+                    },
+                    backgroundColor: AppColors.surfaceSecondary,
+                    selectedColor: AppColors.primaryLight,
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primary : AppColors.border,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
 
           // LIVE AUTOCOMPLETE SEARCH RESULTS
@@ -682,12 +829,15 @@ class _CompetitorsViewState extends State<CompetitorsView> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      focusApp.name,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                    Flexible(
+                      child: Text(
+                        focusApp.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -711,12 +861,14 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${focusApp.developer} • Category: ${focusApp.category} • Opportunity Score: ${focusApp.opportunityScore}/100 • Price: ${focusApp.price > 0 ? '\$${focusApp.price.toStringAsFixed(2)}' : focusApp.monetization}',
+                  '${focusApp.developer} • Category: ${focusApp.category} • Opportunity Score: ${focusApp.opportunityScore}/100 • Price: ${_formatPricing(focusApp.price, focusApp.monetization)}',
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 10),
           if (widget.onOpenApp != null)
             TextButton.icon(
               onPressed: () => widget.onOpenApp!(focusApp),
