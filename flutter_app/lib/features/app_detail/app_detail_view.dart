@@ -1,21 +1,66 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
+import '../../data/repositories/watchlist_repository.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/signal_bar.dart';
 import '../../core/utils/formatters.dart';
 
-class AppDetailView extends StatelessWidget {
+class AppDetailView extends StatefulWidget {
   final AppItem app;
   final VoidCallback onBack;
   final ValueChanged<AppItem> onBuildWithAI;
+  final WatchlistRepository? watchlistRepo;
 
   const AppDetailView({
     super.key,
     required this.app,
     required this.onBack,
     required this.onBuildWithAI,
+    this.watchlistRepo,
   });
+
+  @override
+  State<AppDetailView> createState() => _AppDetailViewState();
+}
+
+class _AppDetailViewState extends State<AppDetailView> {
+  AppItem get app => widget.app;
+  bool _isWatchlisted = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkWatchlist();
+  }
+
+  Future<void> _checkWatchlist() async {
+    if (widget.watchlistRepo != null) {
+      final saved = await widget.watchlistRepo!.isWatchlisted(app.id);
+      if (mounted) setState(() => _isWatchlisted = saved);
+    }
+  }
+
+  Future<void> _toggleWatchlist() async {
+    if (widget.watchlistRepo == null || _isLoading) return;
+    setState(() => _isLoading = true);
+    await widget.watchlistRepo!.toggleWatchlist(app.id);
+    if (mounted) {
+      setState(() {
+        _isWatchlisted = !_isWatchlisted;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isWatchlisted
+              ? 'Saved ${app.name} to your Watchlist!'
+              : 'Removed ${app.name} from your Watchlist'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +73,7 @@ class AppDetailView extends StatelessWidget {
         Row(
           children: [
             OutlinedButton.icon(
-              onPressed: onBack,
+              onPressed: widget.onBack,
               icon: const Icon(Icons.arrow_back, size: 16),
               label: const Text('Back to Opportunities'),
               style: OutlinedButton.styleFrom(
@@ -174,8 +219,25 @@ class AppDetailView extends StatelessWidget {
               if (isDesktop) ...[
                 ScoreBadge(score: app.opportunityScore, fontSize: 16),
                 const SizedBox(width: 16),
+                if (widget.watchlistRepo != null) ...[
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _toggleWatchlist,
+                    icon: Icon(
+                      _isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
+                      size: 18,
+                      color: _isWatchlisted ? AppColors.primary : AppColors.textSecondary,
+                    ),
+                    label: Text(_isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _isWatchlisted ? AppColors.primary : AppColors.textPrimary,
+                      side: BorderSide(color: _isWatchlisted ? AppColors.primary : AppColors.border),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 FilledButton.icon(
-                  onPressed: () => onBuildWithAI(app),
+                  onPressed: () => widget.onBuildWithAI(app),
                   icon: const Icon(Icons.auto_awesome, size: 18),
                   label: const Text('Build This App'),
                   style: FilledButton.styleFrom(
@@ -191,10 +253,25 @@ class AppDetailView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ScoreBadge(score: app.opportunityScore, fontSize: 14),
-                FilledButton.icon(
-                  onPressed: () => onBuildWithAI(app),
-                  icon: const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Build This App'),
+                Row(
+                  children: [
+                    if (widget.watchlistRepo != null) ...[
+                      IconButton(
+                        tooltip: _isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist',
+                        icon: Icon(
+                          _isWatchlisted ? Icons.bookmark : Icons.bookmark_border,
+                          color: _isWatchlisted ? AppColors.primary : AppColors.textSecondary,
+                        ),
+                        onPressed: _isLoading ? null : _toggleWatchlist,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    FilledButton.icon(
+                      onPressed: () => widget.onBuildWithAI(app),
+                      icon: const Icon(Icons.auto_awesome, size: 16),
+                      label: const Text('Build This App'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -505,7 +582,7 @@ class AppDetailView extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            onPressed: () => onBuildWithAI(app),
+            onPressed: () => widget.onBuildWithAI(app),
             icon: const Icon(Icons.auto_awesome, size: 18),
             label: const Text('Generate 14-Section Build Blueprint'),
             style: FilledButton.styleFrom(

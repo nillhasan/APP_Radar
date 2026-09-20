@@ -506,6 +506,7 @@ class _AppShellState extends State<AppShell> {
     if (_selectedAppForDetail != null) {
       return AppDetailView(
         app: _selectedAppForDetail!,
+        watchlistRepo: widget.watchlistRepo,
         onBack: () => setState(() => _selectedAppForDetail = null),
         onBuildWithAI: (app) {
           setState(() {
@@ -534,6 +535,7 @@ class _AppShellState extends State<AppShell> {
       case 1:
         return OpportunitiesView(
           oppRepo: widget.oppRepo,
+          watchlistRepo: widget.watchlistRepo,
           onOpenApp: _openAppDetail,
         );
       case 2:
@@ -550,6 +552,7 @@ class _AppShellState extends State<AppShell> {
           watchlistRepo: widget.watchlistRepo,
           onOpenApp: _openAppDetail,
           onBuildWithAI: (app) => _navigateToTab(8),
+          onExploreOpportunities: () => _navigateToTab(1),
         );
       case 6:
         return ReportsView(

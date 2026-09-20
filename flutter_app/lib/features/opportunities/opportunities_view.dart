@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/opportunity_repository.dart';
+import '../../data/repositories/watchlist_repository.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
@@ -10,11 +11,13 @@ import '../../widgets/signal_bar.dart';
 class OpportunitiesView extends StatefulWidget {
   final OpportunityRepository oppRepo;
   final ValueChanged<AppItem> onOpenApp;
+  final WatchlistRepository? watchlistRepo;
 
   const OpportunitiesView({
     super.key,
     required this.oppRepo,
     required this.onOpenApp,
+    this.watchlistRepo,
   });
 
   @override
@@ -26,6 +29,24 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
   String _category = 'All Categories';
   String _platform = 'All Platforms';
   String _sortBy = 'Opportunity Score';
+  Set<String> _watchlistedAppIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWatchlist();
+  }
+
+  Future<void> _loadWatchlist() async {
+    if (widget.watchlistRepo != null) {
+      final saved = await widget.watchlistRepo!.getWatchlistedApps();
+      if (mounted) {
+        setState(() {
+          _watchlistedAppIds = saved.map((a) => a.id).toSet();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -247,10 +268,52 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
                   _metricPill(Icons.attach_money, 'Est. \$${(app.revenueEstimate / 1000).toStringAsFixed(0)}k/mo'),
                 ],
               ),
-              FilledButton.icon(
-                onPressed: () => widget.onOpenApp(app),
-                icon: const Icon(Icons.analytics_outlined, size: 16),
-                label: const Text('View Full Analysis'),
+              Row(
+                children: [
+                  if (widget.watchlistRepo != null) ...[
+                    IconButton(
+                      tooltip: _watchlistedAppIds.contains(app.id)
+                          ? 'Remove from Watchlist'
+                          : 'Save to Watchlist',
+                      icon: Icon(
+                        _watchlistedAppIds.contains(app.id)
+                            ? Icons.bookmark
+                            : Icons.bookmark_border,
+                        color: _watchlistedAppIds.contains(app.id)
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                        size: 22,
+                      ),
+                      onPressed: () async {
+                        final isSaved = _watchlistedAppIds.contains(app.id);
+                        await widget.watchlistRepo!.toggleWatchlist(app.id);
+                        if (mounted) {
+                          setState(() {
+                            if (isSaved) {
+                              _watchlistedAppIds.remove(app.id);
+                            } else {
+                              _watchlistedAppIds.add(app.id);
+                            }
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isSaved
+                                  ? 'Removed ${app.name} from Watchlist'
+                                  : 'Saved ${app.name} to Watchlist!'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  FilledButton.icon(
+                    onPressed: () => widget.onOpenApp(app),
+                    icon: const Icon(Icons.analytics_outlined, size: 16),
+                    label: const Text('View Full Analysis'),
+                  ),
+                ],
               ),
             ],
           ),

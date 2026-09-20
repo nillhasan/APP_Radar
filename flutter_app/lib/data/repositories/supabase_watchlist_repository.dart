@@ -94,4 +94,37 @@ class SupabaseWatchlistRepository implements WatchlistRepository {
       await fallbackRepo.removeFromWatchlist(appId);
     }
   }
+
+  @override
+  Future<bool> isWatchlisted(String appId) async {
+    if (!authService.isAuthenticated || client == null) {
+      return await fallbackRepo.isWatchlisted(appId);
+    }
+
+    try {
+      final userId = authService.currentUser!.id;
+      final parsedAppId = int.tryParse(appId) ?? 1;
+
+      final response = await client!
+          .from('user_watchlists')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('app_id', parsedAppId)
+          .maybeSingle();
+
+      return response != null;
+    } catch (_) {
+      return await fallbackRepo.isWatchlisted(appId);
+    }
+  }
+
+  @override
+  Future<void> toggleWatchlist(String appId) async {
+    final saved = await isWatchlisted(appId);
+    if (saved) {
+      await removeFromWatchlist(appId);
+    } else {
+      await addToWatchlist(appId);
+    }
+  }
 }

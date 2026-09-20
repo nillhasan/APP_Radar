@@ -9,12 +9,14 @@ class WatchlistView extends StatefulWidget {
   final WatchlistRepository watchlistRepo;
   final ValueChanged<AppItem> onOpenApp;
   final ValueChanged<AppItem> onBuildWithAI;
+  final VoidCallback? onExploreOpportunities;
 
   const WatchlistView({
     super.key,
     required this.watchlistRepo,
     required this.onOpenApp,
     required this.onBuildWithAI,
+    this.onExploreOpportunities,
   });
 
   @override
@@ -53,18 +55,32 @@ class _WatchlistViewState extends State<WatchlistView> {
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Column(
-                  children: const [
-                    Icon(Icons.bookmark_border, size: 48, color: AppColors.textMuted),
-                    SizedBox(height: 12),
-                    Text(
+                  children: [
+                    const Icon(Icons.bookmark_border, size: 48, color: AppColors.textMuted),
+                    const SizedBox(height: 12),
+                    const Text(
                       'No apps in watchlist yet',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
-                    SizedBox(height: 4),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       'Explore opportunities or app explorer and tap bookmark to add apps here.',
                       style: TextStyle(fontSize: 13, color: AppColors.textMuted),
                     ),
+                    if (widget.onExploreOpportunities != null) ...[
+                      const SizedBox(height: 18),
+                      ElevatedButton.icon(
+                        onPressed: widget.onExploreOpportunities,
+                        icon: const Icon(Icons.explore_outlined, size: 16),
+                        label: const Text('Explore Opportunities'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               );
