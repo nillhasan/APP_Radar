@@ -68,14 +68,16 @@ void main() {
       expect(find.text('Agency & Team'), findsOneWidget);
       expect(find.text('SAVE 20%'), findsOneWidget);
 
-      // Toggle billing
-      await tester.tap(find.text('Monthly Billing'));
-      await tester.pumpAndSettle();
+      // Toggle billing (Default is Monthly)
       expect(find.text('\$29'), findsOneWidget);
 
       await tester.tap(find.text('Annual Billing'));
       await tester.pumpAndSettle();
       expect(find.text('\$23'), findsOneWidget);
+
+      await tester.tap(find.text('Monthly Billing'));
+      await tester.pumpAndSettle();
+      expect(find.text('\$29'), findsOneWidget);
 
       // Tap instant dev upgrade
       final demoBtn = find.text('Simulate instant Pro (Demo Mode)');

@@ -73,17 +73,17 @@ void main() {
         ),
       );
 
-      // Default is Annual billing ($23/mo, SAVE 20%)
-      expect(find.text('Annual Billing'), findsOneWidget);
+      // Default is Monthly billing ($29/mo)
+      expect(find.text('Monthly Billing'), findsOneWidget);
       expect(find.text('SAVE 20%'), findsOneWidget);
-      expect(find.text('\$23'), findsOneWidget);
+      expect(find.text('\$29'), findsOneWidget);
       expect(find.text('Upgrade to Pro Builder'), findsOneWidget);
 
-      // Switch to Monthly billing
-      await tester.tap(find.text('Monthly Billing'));
+      // Switch to Annual billing
+      await tester.tap(find.text('Annual Billing'));
       await tester.pumpAndSettle();
 
-      expect(find.text('\$29'), findsOneWidget);
+      expect(find.text('\$23'), findsOneWidget);
       expect(find.text('Upgrade to Pro Builder'), findsOneWidget);
 
       // Tap Upgrade with Stripe when unauthenticated -> should trigger onRequiresAuth

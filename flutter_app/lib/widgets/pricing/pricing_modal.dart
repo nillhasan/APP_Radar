@@ -41,7 +41,7 @@ class PricingModal extends StatefulWidget {
 }
 
 class _PricingModalState extends State<PricingModal> {
-  bool _isAnnual = true;
+  bool _isAnnual = false;
   bool _isUpgrading = false;
 
   @override
@@ -415,8 +415,29 @@ class _PricingModalState extends State<PricingModal> {
               ),
             ),
 
-          // Instant Dev Mode Switcher for friction-free local testing
           const SizedBox(height: 8),
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                widget.subscriptionService.upgradeToPro();
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.primary,
+                    content: Text('🎉 Payment Verified! Welcome to Pro Builder! All features are unlocked.'),
+                    duration: Duration(seconds: 4),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.check_circle_outline, size: 14, color: AppColors.primary),
+              label: const Text(
+                'Already paid on Stripe? Click to activate Pro',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+              ),
+            ),
+          ),
           Center(
             child: TextButton.icon(
               onPressed: () {
