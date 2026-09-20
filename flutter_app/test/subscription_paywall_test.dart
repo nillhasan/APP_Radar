@@ -79,12 +79,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('\$29'), findsOneWidget);
 
-      // Tap instant dev upgrade
-      final demoBtn = find.text('Simulate instant Pro (Demo Mode)');
-      expect(demoBtn, findsOneWidget);
-      await tester.tap(demoBtn);
-      await tester.pumpAndSettle();
+      // Verify clean professional CTA
+      expect(find.text('Upgrade to Pro Builder'), findsOneWidget);
+      expect(find.text('Contact for Custom Seats'), findsOneWidget);
 
+      // Verify payment success activates Pro
+      await sub.handlePaymentSuccess();
       expect(sub.isPro, true);
     });
   });

@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../core/config/stripe_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth/auth_service.dart';
 import '../../services/subscription/subscription_service.dart';
+import 'agency_inquiry_modal.dart';
 
 class PricingModal extends StatefulWidget {
   final SubscriptionService subscriptionService;
   final String? featureTrigger;
   final VoidCallback? onRequiresAuth;
+  final AuthService? authService;
+  final SupabaseClient? supabaseClient;
 
   const PricingModal({
     super.key,
     required this.subscriptionService,
     this.featureTrigger,
     this.onRequiresAuth,
+    this.authService,
+    this.supabaseClient,
   });
 
   static Future<void> show(
@@ -20,6 +26,8 @@ class PricingModal extends StatefulWidget {
     required SubscriptionService subscriptionService,
     String? featureTrigger,
     VoidCallback? onRequiresAuth,
+    AuthService? authService,
+    SupabaseClient? supabaseClient,
   }) {
     return showDialog(
       context: context,
@@ -31,6 +39,8 @@ class PricingModal extends StatefulWidget {
           subscriptionService: subscriptionService,
           featureTrigger: featureTrigger,
           onRequiresAuth: onRequiresAuth,
+          authService: authService,
+          supabaseClient: supabaseClient,
         ),
       ),
     );
@@ -415,51 +425,7 @@ class _PricingModalState extends State<PricingModal> {
               ),
             ),
 
-          const SizedBox(height: 8),
-          Center(
-            child: TextButton.icon(
-              onPressed: () {
-                widget.subscriptionService.upgradeToPro();
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppColors.primary,
-                    content: Text('🎉 Payment Verified! Welcome to Pro Builder! All features are unlocked.'),
-                    duration: Duration(seconds: 4),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.check_circle_outline, size: 14, color: AppColors.primary),
-              label: const Text(
-                'Already paid on Stripe? Click to activate Pro',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-              ),
-            ),
-          ),
-          Center(
-            child: TextButton.icon(
-              onPressed: () {
-                widget.subscriptionService.upgradeToPro();
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppColors.primary,
-                    content: Text('🎉 Dev Mode: Instant Pro Builder unlocked for testing!'),
-                    duration: Duration(seconds: 4),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.science_outlined, size: 13, color: AppColors.textMuted),
-              label: const Text(
-                'Simulate instant Pro (Demo Mode)',
-                style: TextStyle(fontSize: 11, color: AppColors.textMuted),
-              ),
-            ),
-          ),
+
 
           const SizedBox(height: 16),
           const Divider(),
@@ -544,52 +510,15 @@ class _PricingModalState extends State<PricingModal> {
           Text(billingNote, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 18),
           OutlinedButton(
-            onPressed: () async {
-              if (StripeConfig.agencyLink.isEmpty || StripeConfig.agencyLink.contains('placeholder')) {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🏢 Agency Plan inquiry sent! For custom team seats, contact support or choose Pro Builder.'),
-                    duration: Duration(seconds: 4),
-                  ),
-                );
-                return;
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
               }
-
-              final navigator = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
-              final launched = await widget.subscriptionService.launchStripeCheckout(
-                isAnnual: false,
-                customBaseUrl: StripeConfig.agencyLink,
+              AgencyInquiryModal.show(
+                context,
+                authService: widget.authService,
+                supabaseClient: widget.supabaseClient,
               );
-              if (!launched) {
-                if (mounted) {
-                  if (navigator.canPop()) {
-                    navigator.pop();
-                  }
-                  if (widget.onRequiresAuth != null) {
-                    widget.onRequiresAuth!();
-                  } else {
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('Please sign in first to subscribe to the Agency Plan.')),
-                    );
-                  }
-                }
-              } else {
-                if (mounted) {
-                  if (navigator.canPop()) {
-                    navigator.pop();
-                  }
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      backgroundColor: AppColors.primary,
-                      content: Text('💳 Stripe Agency Checkout opened in a new tab!'),
-                    ),
-                  );
-                }
-              }
             },
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 44),

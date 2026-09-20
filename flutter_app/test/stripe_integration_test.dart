@@ -93,7 +93,12 @@ void main() {
       expect(authModalTriggered, isTrue);
     });
 
-    testWidgets('Demo mode button provides instant local Pro activation', (tester) async {
+    testWidgets('Clicking Contact for Custom Seats opens AgencyInquiryModal', (tester) async {
+      tester.view.physicalSize = const Size(1280, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final subscriptionService = SubscriptionService();
       expect(subscriptionService.isFree, isTrue);
 
@@ -107,12 +112,21 @@ void main() {
         ),
       );
 
-      // Tap Dev Mode Instant Pro button
-      final devModeButton = find.text('Simulate instant Pro (Demo Mode)');
-      expect(devModeButton, findsOneWidget);
+      final agencyBtn = find.text('Contact for Custom Seats');
+      expect(agencyBtn, findsOneWidget);
 
-      await tester.tap(devModeButton);
+      await tester.tap(agencyBtn);
       await tester.pumpAndSettle();
+
+      expect(find.text('Request Custom Seats'), findsOneWidget);
+      expect(find.text('Submit Sales Request'), findsOneWidget);
+    });
+
+    testWidgets('handlePaymentSuccess activates Pro and blueprint generation', (tester) async {
+      final subscriptionService = SubscriptionService();
+      expect(subscriptionService.isFree, isTrue);
+
+      await subscriptionService.handlePaymentSuccess(sessionId: 'test_session_123');
 
       expect(subscriptionService.isPro, isTrue);
       expect(subscriptionService.canGenerateBlueprint(), isTrue);

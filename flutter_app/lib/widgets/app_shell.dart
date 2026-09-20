@@ -110,6 +110,41 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     widget.authService.addListener(_onServiceStateChanged);
     widget.subscriptionService.addListener(_onServiceStateChanged);
+    _checkPaymentReturnUrl();
+  }
+
+  void _checkPaymentReturnUrl() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final params = Uri.base.queryParameters;
+        if (params['payment'] == 'success' || params.containsKey('session_id')) {
+          final sessionId = params['session_id'];
+          await widget.subscriptionService.handlePaymentSuccess(sessionId: sessionId);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: AppColors.primary,
+                duration: Duration(seconds: 5),
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '🎉 Payment Verified! Welcome to Pro Builder. All features are unlocked.',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Note: Error checking payment return parameters: $e');
+      }
+    });
   }
 
   @override
@@ -258,6 +293,7 @@ class _AppShellState extends State<AppShell> {
             onPressed: () => PricingModal.show(
               context,
               subscriptionService: widget.subscriptionService,
+              authService: widget.authService,
               onRequiresAuth: () => AuthModal.show(
                 context,
                 authService: widget.authService,
@@ -339,6 +375,7 @@ class _AppShellState extends State<AppShell> {
           PricingModal.show(
             context,
             subscriptionService: widget.subscriptionService,
+            authService: widget.authService,
             onRequiresAuth: () => AuthModal.show(
               context,
               authService: widget.authService,
@@ -571,6 +608,7 @@ class _AppShellState extends State<AppShell> {
                 ? () => PricingModal.show(
                       context,
                       subscriptionService: widget.subscriptionService,
+                      authService: widget.authService,
                       onRequiresAuth: () => AuthModal.show(
                         context,
                         authService: widget.authService,

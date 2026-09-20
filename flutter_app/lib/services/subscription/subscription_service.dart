@@ -174,6 +174,27 @@ class SubscriptionService extends ChangeNotifier {
     return false;
   }
 
+  Future<void> handlePaymentSuccess({String? sessionId}) async {
+    _tier = UserTier.pro;
+    notifyListeners();
+
+    final client = _supabaseClient;
+    final user = _authService?.currentUser;
+    if (client != null && user != null) {
+      try {
+        await client.from('user_subscriptions').upsert({
+          'user_id': user.id,
+          'tier': 'pro',
+          'status': 'active',
+          'stripe_subscription_id': sessionId,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        }, onConflict: 'user_id');
+      } catch (e) {
+        debugPrint('Note: unable to save subscription row to Supabase: $e');
+      }
+    }
+  }
+
   void upgradeToPro() {
     _tier = UserTier.pro;
     notifyListeners();
