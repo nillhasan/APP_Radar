@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
@@ -995,6 +996,15 @@ class _AppDetailViewState extends State<AppDetailView> {
               content: Text('📥 Downloaded ${app.name} Summary as Markdown!'),
             ),
           );
+        } else if (val == 'notion') {
+          final md = exporter.generateTeardownMarkdown(app);
+          Clipboard.setData(ClipboardData(text: md));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.success,
+              content: Text('📋 Copied ${app.name} Notion PRD to clipboard! Paste directly into Notion.'),
+            ),
+          );
         }
       },
       itemBuilder: (ctx) => [
@@ -1015,6 +1025,16 @@ class _AppDetailViewState extends State<AppDetailView> {
               Icon(Icons.description_outlined, size: 16, color: AppColors.primary),
               SizedBox(width: 8),
               Text('Export Summary (MD)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'notion',
+          child: Row(
+            children: [
+              Icon(Icons.content_copy, size: 16, color: AppColors.success),
+              SizedBox(width: 8),
+              Text('Copy Notion PRD', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         ),

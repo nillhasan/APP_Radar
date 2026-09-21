@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/opportunity_repository.dart';
 import '../../data/repositories/watchlist_repository.dart';
+import '../../services/export/file_export_service.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
@@ -118,7 +120,10 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
             }
 
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildExportToolbar(apps),
+                const SizedBox(height: 14),
                 for (final app in apps) ...[
                   _buildOpportunityCard(app),
                   const SizedBox(height: 16),
@@ -128,6 +133,79 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildExportToolbar(List<AppItem> apps) {
+    const exportService = FileExportService();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.verified_outlined, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                '${apps.length} High-Potential Opportunities',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  exportService.downloadAppsListCsv(apps, fileName: 'AppRadar_Opportunities_Export.csv');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('📥 Exported ${apps.length} opportunities to CSV!'),
+                      backgroundColor: AppColors.primary,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.download, size: 15),
+                label: const Text('Export CSV', style: TextStyle(fontSize: 12)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final md = exportService.generateNotionMarkdownTable(apps, title: 'AppRadar Vetted Opportunities');
+                  await Clipboard.setData(ClipboardData(text: md));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('📋 Copied Notion Table for ${apps.length} opportunities! Paste into Notion.'),
+                        backgroundColor: AppColors.success,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.table_chart_outlined, size: 15),
+                label: const Text('Copy Notion Table', style: TextStyle(fontSize: 12)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -254,8 +332,11 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
                   ),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               Wrap(
                 spacing: 16,

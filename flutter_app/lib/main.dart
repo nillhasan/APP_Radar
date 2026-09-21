@@ -11,6 +11,7 @@ import 'data/repositories/supabase_market_trend_repository.dart';
 import 'data/repositories/watchlist_repository.dart';
 import 'data/repositories/supabase_watchlist_repository.dart';
 import 'services/ai/ai_service.dart';
+import 'services/ai/gemini_ai_service.dart';
 import 'services/auth/auth_service.dart';
 import 'widgets/app_shell.dart';
 import 'services/subscription/subscription_service.dart';
@@ -102,7 +103,7 @@ class _AppRadarAppState extends State<AppRadarApp> {
       fallbackRepo: mockWatchlist,
     );
 
-    _aiService = MockAIService();
+    _aiService = GeminiAIService();
   }
 
   @override

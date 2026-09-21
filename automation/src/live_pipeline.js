@@ -25,7 +25,7 @@ if (!GEMINI_API_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY || 'anonymous');
 
-// High-growth categories & niches across mobile SaaS, AI micro-tools, and indie apps
+// High-growth categories & niches across mobile SaaS, AI micro-tools, and indie apps (28+ Categories)
 const DISCOVERY_QUERIES = [
   'ai note taker',
   'calorie tracker ai',
@@ -33,12 +33,28 @@ const DISCOVERY_QUERIES = [
   'ai language tutor',
   'budget finance ai',
   'sleep tracker smart',
-  'habit tracker habitify',
+  'habit tracker streak',
   'ai photo enhancer',
   'invoice maker receipt',
   'workout planner gym',
-  'fasting tracker intermittent',
-  'audio recorder transcribe'
+  'fasting tracker timer',
+  'audio recorder transcribe',
+  'mindfulness meditation calm',
+  'task manager kanban',
+  'crypto portfolio tracker',
+  'ai resume builder',
+  'water tracker reminder',
+  'screen time parental control',
+  'video captions teleprompter',
+  'flashcards spaced repetition',
+  'mileage log tracker',
+  'dog training puppy',
+  'ai avatar generator',
+  'vpn secure proxy',
+  'white noise sound machine',
+  'trip itinerary planner',
+  'inventory barcode scanner',
+  'sound meter decibel'
 ];
 
 /**
@@ -288,8 +304,8 @@ async function runPipeline() {
     console.log(`\n🔍 Scanning Stores for niche: "${query}"...`);
 
     const [appleResults, playResults] = await Promise.all([
-      fetchLiveAppleStoreApps(query, 3),
-      fetchLiveGooglePlayApps(query, 3)
+      fetchLiveAppleStoreApps(query, 4),
+      fetchLiveGooglePlayApps(query, 4)
     ]);
 
     const combined = [...appleResults, ...playResults];
@@ -340,6 +356,9 @@ async function runPipeline() {
 
       if (appErr) {
         console.error(`  ⚠️ Supabase upsert error for "${raw.trackName}":`, appErr.message);
+        if (appErr.message?.includes('row-level security') || appErr.code === '42501') {
+          console.error('  🚨 CRITICAL: Supabase RLS blocked this operation! You must supply SUPABASE_SERVICE_ROLE_KEY in your GitHub Secrets or .env file to insert backend telemetry data.');
+        }
         continue;
       }
 

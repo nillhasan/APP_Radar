@@ -239,4 +239,96 @@ class FileExportService {
     final content = generateTeardownMarkdown(app);
     downloadFile(fileName: fileName, content: content, mimeType: 'text/markdown;charset=utf-8');
   }
+
+  /// Generates a complete CSV table for a list of apps.
+  String generateAppsListCsv(List<AppItem> apps) {
+    final buffer = StringBuffer();
+    buffer.writeln('Rank,App Name,Category,Platform,Rating,Reviews,Downloads/Mo,Est. Revenue/Mo,Growth Rate %,Opportunity Score,Developer,Monetization,URL');
+
+    String escape(dynamic val) {
+      final str = val?.toString() ?? '';
+      if (str.contains(',') || str.contains('"') || str.contains('\n')) {
+        return '"${str.replaceAll('"', '""')}"';
+      }
+      return str;
+    }
+
+    for (final app in apps) {
+      buffer.writeln([
+        escape(app.ranking),
+        escape(app.name),
+        escape(app.category),
+        escape(app.platform),
+        escape(app.rating),
+        escape(app.reviewCount),
+        escape(app.downloadsEstimate),
+        escape(app.revenueEstimate),
+        escape(app.growthRate),
+        escape(app.opportunityScore),
+        escape(app.developer),
+        escape(app.monetization),
+        escape(app.appUrl),
+      ].join(','));
+    }
+
+    return buffer.toString();
+  }
+
+  /// Generates a Notion-ready Markdown table for a list of apps.
+  String generateNotionMarkdownTable(List<AppItem> apps, {String title = 'AppRadar Market Opportunities'}) {
+    final buffer = StringBuffer();
+    buffer.writeln('# 🚀 $title');
+    buffer.writeln('> Exported from **AppRadar Market Intelligence Engine**');
+    buffer.writeln('> **Total Apps:** ${apps.length} | **Export Date:** ${DateTime.now().toUtc().toIso8601String().split('T').first}');
+    buffer.writeln();
+    buffer.writeln('| App | Category | Platform | Rating | Est. Downloads | Est. Revenue | Growth | Opportunity |');
+    buffer.writeln('| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |');
+
+    for (final app in apps) {
+      final icon = app.iconEmoji.isNotEmpty ? app.iconEmoji : '📱';
+      final ratingStr = '${app.rating.toStringAsFixed(1)} ⭐ (${_formatK(app.reviewCount)})';
+      final dlStr = '${_formatK(app.downloadsEstimate)}/mo';
+      final revStr = '\$${_formatK(app.revenueEstimate)}/mo';
+      final growthStr = '+${app.growthRate.toInt()}%';
+      final oppScore = '${app.opportunityScore}/100';
+
+      buffer.writeln('| $icon **${app.name}** | ${app.category} | ${app.platform} | $ratingStr | $dlStr | $revStr | $growthStr | 🔥 $oppScore |');
+    }
+
+    buffer.writeln();
+    buffer.writeln('### 💡 Key Pain Points & Developer Opportunities');
+    for (final app in apps.take(5)) {
+      buffer.writeln('#### ${app.name} (${app.category})');
+      if (app.userPainPoints.isNotEmpty) {
+        buffer.writeln('- **User Frustrations:** ${app.userPainPoints.join("; ")}');
+      }
+      if (app.competitorGaps.isNotEmpty) {
+        buffer.writeln('- **Competitor Gap:** ${app.competitorGaps.join("; ")}');
+      }
+      buffer.writeln();
+    }
+
+    return buffer.toString();
+  }
+
+  static String _formatK(num number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}k';
+    }
+    return number.toString();
+  }
+
+  /// Downloads multiple apps as a single CSV file.
+  void downloadAppsListCsv(List<AppItem> apps, {String fileName = 'AppRadar_Market_Export.csv'}) {
+    final content = generateAppsListCsv(apps);
+    downloadFile(fileName: fileName, content: content, mimeType: 'text/csv;charset=utf-8');
+  }
+
+  /// Downloads Notion-ready Markdown document.
+  void downloadNotionMarkdown(List<AppItem> apps, {String fileName = 'AppRadar_Notion_Opportunities.md'}) {
+    final content = generateNotionMarkdownTable(apps);
+    downloadFile(fileName: fileName, content: content, mimeType: 'text/markdown;charset=utf-8');
+  }
 }
