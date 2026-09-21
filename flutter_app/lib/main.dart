@@ -6,6 +6,8 @@ import 'data/repositories/supabase_app_repository.dart';
 import 'data/repositories/opportunity_repository.dart';
 import 'data/repositories/market_trend_repository.dart';
 import 'data/repositories/report_repository.dart';
+import 'data/repositories/supabase_report_repository.dart';
+import 'data/repositories/supabase_market_trend_repository.dart';
 import 'data/repositories/watchlist_repository.dart';
 import 'data/repositories/supabase_watchlist_repository.dart';
 import 'services/ai/ai_service.dart';
@@ -75,8 +77,22 @@ class _AppRadarAppState extends State<AppRadarApp> {
     }
 
     _oppRepo = MockOpportunityRepository(appRepository: _appRepo);
-    _trendRepo = MockMarketTrendRepository();
-    _reportRepo = MockReportRepository();
+
+    final mockTrend = MockMarketTrendRepository();
+    _trendRepo = SupabaseMarketTrendRepository(
+      appRepository: _appRepo,
+      fallbackRepo: mockTrend,
+    );
+
+    final mockReport = MockReportRepository();
+    if (supabaseClient != null) {
+      _reportRepo = SupabaseReportRepository(
+        client: supabaseClient,
+        fallbackRepo: mockReport,
+      );
+    } else {
+      _reportRepo = mockReport;
+    }
 
     final mockWatchlist = MockWatchlistRepository(appRepository: _appRepo);
     _watchlistRepo = SupabaseWatchlistRepository(

@@ -429,13 +429,6 @@ class _AppShellState extends State<AppShell> {
               ),
             );
           }
-        } else if (val == 'toggle_plan') {
-          widget.subscriptionService.toggleTier();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Switched to ${widget.subscriptionService.isPro ? "Pro Builder" : "Free Starter"} plan.')),
-            );
-          }
         } else if (val == 'signout') {
           await auth.signOut();
           if (mounted) {
@@ -500,19 +493,6 @@ class _AppShellState extends State<AppShell> {
               const Icon(Icons.sync, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
               const Text('Restore / Sync Plan', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'toggle_plan',
-          child: Row(
-            children: [
-              const Icon(Icons.swap_horiz, size: 18, color: AppColors.textSecondary),
-              const SizedBox(width: 8),
-              Text(
-                'Switch to ${widget.subscriptionService.isPro ? "Free" : "Pro"} (Demo)',
-                style: const TextStyle(fontSize: 13),
-              ),
             ],
           ),
         ),

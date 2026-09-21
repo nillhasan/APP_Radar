@@ -5,8 +5,8 @@
  * completes checkout, updates their subscription, or cancels via Customer Portal.
  * 
  * Usage:
- *   1. Install dependencies (if running standalone):
- *      npm install express stripe @supabase/supabase-js dotenv
+ *   1. Install dependencies:
+ *      npm install
  *   2. Set environment variables in automation/.env:
  *      STRIPE_SECRET_KEY=sk_test_...
  *      STRIPE_WEBHOOK_SECRET=whsec_...
@@ -15,12 +15,13 @@
  *   3. Test locally with Stripe CLI:
  *      stripe listen --forward-to localhost:4242/webhook
  *   4. Run the server:
- *      node src/stripe_webhook.js
+ *      npm run webhook
  */
 
-const express = require('express');
-const dotenv = require('dotenv');
-const { createClient } = require('@supabase/supabase-js');
+import express from 'express';
+import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
 dotenv.config();
 
@@ -40,7 +41,7 @@ const supabase = (supabaseUrl && supabaseKey)
   ? createClient(supabaseUrl, supabaseKey)
   : null;
 
-const stripe = stripeKey ? require('stripe')(stripeKey) : null;
+const stripe = stripeKey ? new Stripe(stripeKey) : null;
 
 // Stripe requires the raw body to verify webhook signature
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {

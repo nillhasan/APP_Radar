@@ -3,8 +3,8 @@ name: AppRadar Daily Store Telemetry & AI Pipeline
 on:
   workflow_dispatch:
   schedule:
-    # 02:00 UTC = 08:00 Bangladesh time
-    - cron: "0 2 * * *"
+    # 02:17 UTC = 08:17 Bangladesh time (shifted off top-of-hour to prevent runner queue congestion)
+    - cron: "17 2 * * *"
 
 jobs:
   telemetry-and-report:

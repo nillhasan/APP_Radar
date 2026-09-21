@@ -49,12 +49,12 @@ class DashboardView extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            const SectionHeader(
+            SectionHeader(
               title: 'Discover Tomorrow’s App Opportunities Today',
               subtitle:
-                  'AI-computed market velocity, store signals, and review sentiment across 128+ tracked applications.',
+                  'AI-computed market velocity, store signals, and review sentiment across ${allApps.length} tracked applications.',
             ),
-            _buildKpiGrid(),
+            _buildKpiGrid(allApps),
             const SizedBox(height: 24),
             TopChartsLeaderboard(
               apps: allApps,
@@ -87,37 +87,42 @@ class DashboardView extends StatelessWidget {
     );
   }
 
-  Widget _buildKpiGrid() {
+  Widget _buildKpiGrid(List<AppItem> allApps) {
+    final totalCount = allApps.length;
+    final highPotentialCount = allApps.where((a) => a.opportunityScore >= 75).length;
+    final velocityCount = allApps.where((a) => a.growthRate >= 15.0).length;
+    final platformsCount = allApps.map((a) => a.platform).toSet().length;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Wrap(
           spacing: 16,
           runSpacing: 16,
-          children: const [
+          children: [
             MetricCard(
               title: 'Apps Analyzed',
-              value: '128',
+              value: '$totalCount',
               delta: '+24% this week',
               icon: Icons.analytics_outlined,
               isPositive: true,
             ),
             MetricCard(
               title: 'New Opportunities',
-              value: '24',
-              delta: '+60% velocity',
+              value: '$velocityCount',
+              delta: 'Growth > 15%',
               icon: Icons.bolt,
               isPositive: true,
             ),
             MetricCard(
               title: 'High Potential',
-              value: '12',
-              delta: 'Score > 75',
+              value: '$highPotentialCount',
+              delta: 'Score ≥ 75',
               icon: Icons.star_border,
               isPositive: true,
             ),
             MetricCard(
               title: 'Markets Tracked',
-              value: '3',
+              value: '$platformsCount',
               delta: 'US • UK • CA',
               icon: Icons.public,
               isPositive: true,

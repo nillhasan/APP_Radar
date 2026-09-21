@@ -311,20 +311,19 @@ class _PricingModalState extends State<PricingModal> {
           OutlinedButton(
             onPressed: isCurrent
                 ? null
-                : () {
-                    widget.subscriptionService.downgradeToFree();
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
+                : () async {
+                    final launched = await widget.subscriptionService.launchCustomerPortal();
+                    if (!launched && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('To manage or downgrade your subscription, please visit the Stripe Customer Portal.')),
+                      );
                     }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Switched to Free tier for testing.')),
-                    );
                   },
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 44),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text(isCurrent ? 'Current Plan' : 'Downgrade to Free'),
+            child: Text(isCurrent ? 'Current Plan' : 'Manage Subscription'),
           ),
           const SizedBox(height: 24),
           const Divider(),

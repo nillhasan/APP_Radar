@@ -73,18 +73,8 @@ create policy "Allow public read on app_metrics" on app_metrics for select using
 create policy "Allow public read on app_analysis" on app_analysis for select using (true);
 create policy "Allow public read on reports" on reports for select using (true);
 
--- Policies for ingestion & pipeline writing (anon key)
-create policy "Allow public insert on apps" on apps for insert with check (true);
-create policy "Allow public update on apps" on apps for update using (true) with check (true);
-
-create policy "Allow public insert on app_metrics" on app_metrics for insert with check (true);
-create policy "Allow public update on app_metrics" on app_metrics for update using (true) with check (true);
-
-create policy "Allow public insert on app_analysis" on app_analysis for insert with check (true);
-create policy "Allow public update on app_analysis" on app_analysis for update using (true) with check (true);
-
-create policy "Allow public insert on reports" on reports for insert with check (true);
-create policy "Allow public update on reports" on reports for update using (true) with check (true);
+-- Ingestion & pipeline modifications require service_role key (which automatically bypasses RLS)
+-- Public users (anon / authenticated) only have SELECT privileges on store intelligence tables.
 
 -- User Watchlists & Personal Opportunity Tracking
 create table if not exists user_watchlists (
