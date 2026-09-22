@@ -308,23 +308,31 @@ class _PricingModalState extends State<PricingModal> {
             ],
           ),
           const SizedBox(height: 20),
-          OutlinedButton(
-            onPressed: isCurrent
-                ? null
-                : () async {
-                    final launched = await widget.subscriptionService.launchCustomerPortal();
-                    if (!launched && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('To manage or downgrade your subscription, please visit the Stripe Customer Portal.')),
-                      );
-                    }
-                  },
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 44),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          if (isCurrent)
+            Container(
+              height: 44,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Center(
+                child: Text(
+                  'Current Plan',
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ),
+            )
+          else
+            OutlinedButton(
+              onPressed: null,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Free Tier Included'),
             ),
-            child: Text(isCurrent ? 'Current Plan' : 'Manage Subscription'),
-          ),
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 16),
@@ -374,9 +382,9 @@ class _PricingModalState extends State<PricingModal> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'MOST POPULAR',
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                child: Text(
+                  isCurrent ? 'ACTIVE PLAN' : 'MOST POPULAR',
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
                 ),
               ),
             ],
@@ -396,17 +404,52 @@ class _PricingModalState extends State<PricingModal> {
           Text(billingNote, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 18),
 
-          // Main Pro Action: Stripe Checkout or Customer Portal
+          // Main Pro Action: Active Plan Badge or Stripe Checkout
           if (isCurrent)
-            OutlinedButton.icon(
-              onPressed: () => widget.subscriptionService.launchCustomerPortal(),
-              icon: const Icon(Icons.credit_card, size: 16, color: AppColors.primary),
-              label: const Text('Manage Subscription (Stripe Portal)'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 44),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+            Column(
+              children: [
+                Container(
+                  height: 44,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryBorder),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle, size: 18, color: AppColors.primary),
+                      SizedBox(width: 8),
+                      Text(
+                        'Current Active Plan',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () => widget.subscriptionService.launchCustomerPortal(),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    child: Text(
+                      'Manage billing & payment methods →',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             )
           else
             FilledButton.icon(

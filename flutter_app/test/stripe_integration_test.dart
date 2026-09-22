@@ -132,7 +132,7 @@ void main() {
       expect(subscriptionService.canGenerateBlueprint(), isTrue);
     });
 
-    testWidgets('Displays Manage Subscription (Stripe Portal) when user is already Pro', (tester) async {
+    testWidgets('Displays Current Active Plan when user is already Pro', (tester) async {
       final subscriptionService = SubscriptionService();
       subscriptionService.upgradeToPro();
 
@@ -146,7 +146,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Manage Subscription (Stripe Portal)'), findsOneWidget);
+      expect(find.text('Current Active Plan'), findsOneWidget);
+      expect(find.text('Manage billing & payment methods →'), findsOneWidget);
     });
   });
 }
