@@ -1,0 +1,13 @@
+{
+  "name": "appradar-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AppRadar - Mobile App Market Intelligence Platform",
+  "scripts": {
+    "dev": "cd flutter_app && flutter run -d chrome --web-port 3000",
+    "start": "cd flutter_app && flutter run -d chrome --web-port 3000",
+    "test": "cd flutter_app && flutter test",
+    "analyze": "cd flutter_app && flutter analyze",
+    "pipeline": "cd automation && npm run pipeline"
+  }
+}

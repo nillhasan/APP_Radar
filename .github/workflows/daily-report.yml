@@ -3,8 +3,10 @@ name: AppRadar Daily Store Telemetry & AI Pipeline
 on:
   workflow_dispatch:
   schedule:
-    # 02:17 UTC = 08:17 Bangladesh time (shifted off top-of-hour to prevent runner queue congestion)
+    # 02:17 UTC = 08:17 AM Bangladesh time
     - cron: "17 2 * * *"
+    # 14:17 UTC = 08:17 PM Bangladesh time (dual schedule eliminates 24h single-point-of-failure delays)
+    - cron: "17 14 * * *"
 
 jobs:
   telemetry-and-report:
@@ -30,13 +32,17 @@ jobs:
           CHECK_RESEND: ${{ secrets.RESEND_API_KEY || vars.RESEND_API_KEY }}
           CHECK_EMAIL: ${{ secrets.REPORT_TO_EMAIL || vars.REPORT_TO_EMAIL }}
           CHECK_GEMINI: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
-          CHECK_SUPABASE: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
+          CHECK_SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
+          CHECK_SUPABASE_SERVICE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
+          CHECK_SUPABASE_ANON: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
         run: |
           echo "=== Secrets & Variables Availability Check ==="
           if [ -n "$CHECK_RESEND" ]; then echo "✅ RESEND_API_KEY is detected"; else echo "⚠️ RESEND_API_KEY is MISSING"; fi
           if [ -n "$CHECK_EMAIL" ]; then echo "✅ REPORT_TO_EMAIL is detected"; else echo "⚠️ REPORT_TO_EMAIL is MISSING"; fi
           if [ -n "$CHECK_GEMINI" ]; then echo "✅ GEMINI_API_KEY is detected"; else echo "⚠️ GEMINI_API_KEY is MISSING"; fi
-          if [ -n "$CHECK_SUPABASE" ]; then echo "✅ SUPABASE_ANON_KEY is detected"; else echo "⚠️ SUPABASE_ANON_KEY is MISSING"; fi
+          if [ -n "$CHECK_SUPABASE_URL" ]; then echo "✅ SUPABASE_URL is detected"; else echo "⚠️ SUPABASE_URL is MISSING"; fi
+          if [ -n "$CHECK_SUPABASE_SERVICE" ]; then echo "✅ SUPABASE_SERVICE_ROLE_KEY is detected"; else echo "❌ SUPABASE_SERVICE_ROLE_KEY is MISSING"; fi
+          if [ -n "$CHECK_SUPABASE_ANON" ]; then echo "✅ SUPABASE_ANON_KEY is detected"; else echo "⚠️ SUPABASE_ANON_KEY is MISSING"; fi
 
       - name: Run Live AppRadar Pipeline
         run: npm run pipeline
