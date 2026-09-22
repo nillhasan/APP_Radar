@@ -15,46 +15,62 @@ class MarketTrendsView extends StatefulWidget {
 
 class _MarketTrendsViewState extends State<MarketTrendsView> {
   String _selectedTimeframe = '30 Days';
+  late Future<List<dynamic>> _trendsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrends();
+  }
+
+  void _loadTrends() {
+    _trendsFuture = Future.wait([
+      widget.trendRepo.getCategoryTrends(timeframe: _selectedTimeframe),
+      widget.trendRepo.getEmergingKeywords(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 960;
 
     return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        SectionHeader(
-          title: 'Macro Market Trends & Emerging Signals',
-          subtitle: 'Track algorithmic category expansions, fast-moving keywords, and market opportunity indices.',
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedTimeframe,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                items: const [
-                  DropdownMenuItem(value: '7 Days', child: Text('7 Days Window')),
-                  DropdownMenuItem(value: '30 Days', child: Text('30 Days Window')),
-                  DropdownMenuItem(value: '90 Days', child: Text('90 Days Window')),
-                  DropdownMenuItem(value: '1 Year', child: Text('1 Year Window')),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedTimeframe = val);
-                },
+        padding: const EdgeInsets.all(24),
+        children: [
+          SectionHeader(
+            title: 'Macro Market Trends & Emerging Signals',
+            subtitle: 'Track algorithmic category expansions, fast-moving keywords, and market opportunity indices.',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedTimeframe,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  items: const [
+                    DropdownMenuItem(value: '7 Days', child: Text('7 Days Window')),
+                    DropdownMenuItem(value: '30 Days', child: Text('30 Days Window')),
+                    DropdownMenuItem(value: '90 Days', child: Text('90 Days Window')),
+                    DropdownMenuItem(value: '1 Year', child: Text('1 Year Window')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _selectedTimeframe = val;
+                        _loadTrends();
+                      });
+                    }
+                  },
+                ),
               ),
             ),
           ),
-        ),
-        FutureBuilder<List<dynamic>>(
-          future: Future.wait([
-            widget.trendRepo.getCategoryTrends(timeframe: _selectedTimeframe),
-            widget.trendRepo.getEmergingKeywords(),
-          ]),
+          FutureBuilder<List<dynamic>>(
+            future: _trendsFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: Padding(

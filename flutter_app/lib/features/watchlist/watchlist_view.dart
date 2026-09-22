@@ -25,17 +25,29 @@ class WatchlistView extends StatefulWidget {
 }
 
 class _WatchlistViewState extends State<WatchlistView> {
+  late Future<List<AppItem>> _watchlistFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWatchlist();
+  }
+
+  void _loadWatchlist() {
+    _watchlistFuture = widget.watchlistRepo.getWatchlistedApps();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SectionHeader(
-          title: 'Saved Watchlist & Opportunity Monitor',
-          subtitle: 'Monitor high-conviction apps, track score shifts, and record strategic execution notes.',
-        ),
-        FutureBuilder<List<AppItem>>(
-          future: widget.watchlistRepo.getWatchlistedApps(),
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SectionHeader(
+            title: 'Saved Watchlist & Opportunity Monitor',
+            subtitle: 'Monitor high-conviction apps, track score shifts, and record strategic execution notes.',
+          ),
+          FutureBuilder<List<AppItem>>(
+            future: _watchlistFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: Padding(

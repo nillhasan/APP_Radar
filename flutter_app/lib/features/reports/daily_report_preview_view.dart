@@ -6,7 +6,7 @@ import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/app_icon_widget.dart';
 
-class DailyReportPreviewView extends StatelessWidget {
+class DailyReportPreviewView extends StatefulWidget {
   final OpportunityRepository oppRepo;
   final ValueChanged<AppItem> onOpenApp;
 
@@ -17,9 +17,26 @@ class DailyReportPreviewView extends StatelessWidget {
   });
 
   @override
+  State<DailyReportPreviewView> createState() => _DailyReportPreviewViewState();
+}
+
+class _DailyReportPreviewViewState extends State<DailyReportPreviewView> {
+  late Future<List<AppItem>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    _future = widget.oppRepo.getTopOpportunities(limit: 5);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AppItem>>(
-      future: oppRepo.getTopOpportunities(limit: 5),
+      future: _future,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -28,11 +45,11 @@ class DailyReportPreviewView extends StatelessWidget {
         final topApps = snapshot.data!;
 
         return ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const SectionHeader(
-              title: '🚀 Daily App Opportunity Intelligence Report',
-              subtitle: 'September 19, 2026 • Automated Executive Brief by AppRadar AI Engine',
+            padding: const EdgeInsets.all(24),
+            children: [
+              const SectionHeader(
+                title: '🚀 Daily App Opportunity Intelligence Report',
+                subtitle: 'September 19, 2026 • Automated Executive Brief by AppRadar AI Engine',
             ),
             // Market Snapshot Card
             Container(
@@ -170,7 +187,7 @@ class DailyReportPreviewView extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: FilledButton.tonal(
-              onPressed: () => onOpenApp(app),
+              onPressed: () => widget.onOpenApp(app),
               child: const Text('Open App Teardown'),
             ),
           ),

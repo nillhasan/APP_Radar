@@ -35,6 +35,17 @@ class _AppExplorerViewState extends State<AppExplorerView> {
   final TextEditingController _urlController = TextEditingController();
   bool _isAnalyzingUrl = false;
   final FileExportService _exportService = const FileExportService();
+  late Future<List<AppItem>> _appsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadApps();
+  }
+
+  void _loadApps() {
+    _appsFuture = widget.appRepo.getAllApps();
+  }
 
   @override
   void dispose() {
@@ -246,48 +257,60 @@ class _AppExplorerViewState extends State<AppExplorerView> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SectionHeader(
-          title: 'App Intelligence Explorer',
-          subtitle: 'Search raw store performance, run instant custom URL teardowns, or export market intelligence.',
-        ),
-
-        // ⚡ INSTANT STORE URL TEARDOWN HERO CARD
-        _buildUrlTeardownCard(),
-        const SizedBox(height: 20),
-
-        FilterBar(
-          searchQuery: _search,
-          onSearchChanged: (val) => setState(() => _search = val),
-          selectedCategory: _category,
-          onCategoryChanged: (val) => setState(() => _category = val),
-          selectedPlatform: _platform,
-          onPlatformChanged: (val) => setState(() => _platform = val),
-        ),
-        FutureBuilder<List<AppItem>>(
-          future: widget.appRepo.searchApps(
-            _search,
-            category: _category,
-            platform: _platform,
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SectionHeader(
+            title: 'App Intelligence Explorer',
+            subtitle: 'Search raw store performance, run instant custom URL teardowns, or export market intelligence.',
           ),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(),
-              ));
-            }
 
-            final apps = snapshot.data!;
-            if (apps.isEmpty) {
-              return const Center(
-                child: Padding(
+          // ⚡ INSTANT STORE URL TEARDOWN HERO CARD
+          _buildUrlTeardownCard(),
+          const SizedBox(height: 20),
+
+          FilterBar(
+            searchQuery: _search,
+            onSearchChanged: (val) => setState(() => _search = val),
+            selectedCategory: _category,
+            onCategoryChanged: (val) => setState(() => _category = val),
+            selectedPlatform: _platform,
+            onPlatformChanged: (val) => setState(() => _platform = val),
+          ),
+          FutureBuilder<List<AppItem>>(
+            future: _appsFuture,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: Padding(
                   padding: EdgeInsets.all(40),
-                  child: Text('No apps found matching criteria.'),
-                ),
-              );
-            }
+                  child: CircularProgressIndicator(),
+                ));
+              }
+
+              final allApps = snapshot.data!;
+              final apps = allApps.where((app) {
+                final matchesQuery = _search.isEmpty ||
+                    app.name.toLowerCase().contains(_search.toLowerCase()) ||
+                    app.description.toLowerCase().contains(_search.toLowerCase()) ||
+                    app.developer.toLowerCase().contains(_search.toLowerCase());
+
+                final matchesCategory = _category == 'All Categories' ||
+                    _category == 'All' ||
+                    app.category.toLowerCase().contains(_category.toLowerCase());
+
+                final matchesPlatform = _platform == 'All Platforms' ||
+                    app.platform.toLowerCase().contains(_platform.toLowerCase());
+
+                return matchesQuery && matchesCategory && matchesPlatform;
+              }).toList();
+
+              if (apps.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Text('No apps found matching criteria.'),
+                  ),
+                );
+              }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

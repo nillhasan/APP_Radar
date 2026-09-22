@@ -7,13 +7,30 @@ class SupabaseAppRepository implements AppRepository {
   final SupabaseClient client;
   final AppRepository fallbackRepo;
 
+  List<AppItem>? _cachedApps;
+  DateTime? _lastFetchTime;
+  static const Duration _cacheTtl = Duration(minutes: 5);
+
   SupabaseAppRepository({
     required this.client,
     required this.fallbackRepo,
   });
 
+  /// Invalidate cache manually (e.g. after sync or pull-to-refresh)
+  void invalidateCache() {
+    _cachedApps = null;
+    _lastFetchTime = null;
+  }
+
   @override
-  Future<List<AppItem>> getAllApps() async {
+  Future<List<AppItem>> getAllApps({bool forceRefresh = false}) async {
+    // 1. Return from memory immediately if cache is valid (< 5 minutes old)
+    if (!forceRefresh && _cachedApps != null && _lastFetchTime != null) {
+      if (DateTime.now().difference(_lastFetchTime!) < _cacheTtl) {
+        return _cachedApps!;
+      }
+    }
+
     try {
       final response = await client
           .from('apps')
@@ -22,19 +39,32 @@ class SupabaseAppRepository implements AppRepository {
 
       final List<dynamic> data = response as List<dynamic>;
       if (data.isEmpty) {
-        // Fallback to rich mock data if live table is currently empty
-        return await fallbackRepo.getAllApps();
+        final fallback = await fallbackRepo.getAllApps();
+        _cachedApps = fallback;
+        _lastFetchTime = DateTime.now();
+        return fallback;
       }
 
-      return data.map((json) => _mapJsonToAppItem(json as Map<String, dynamic>)).toList();
+      final mapped = data.map((json) => _mapJsonToAppItem(json as Map<String, dynamic>)).toList();
+      _cachedApps = mapped;
+      _lastFetchTime = DateTime.now();
+      return mapped;
     } catch (e) {
-      // Graceful fallback to mock data on network or RLS restriction
-      return await fallbackRepo.getAllApps();
+      final fallback = await fallbackRepo.getAllApps();
+      _cachedApps = fallback;
+      _lastFetchTime = DateTime.now();
+      return fallback;
     }
   }
 
   @override
   Future<AppItem?> getAppById(String id) async {
+    // Instant in-memory check
+    if (_cachedApps != null) {
+      final matched = _cachedApps!.where((a) => a.id == id);
+      if (matched.isNotEmpty) return matched.first;
+    }
+
     try {
       final response = await client
           .from('apps')

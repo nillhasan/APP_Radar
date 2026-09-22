@@ -20,29 +20,45 @@ class ReportsView extends StatefulWidget {
 
 class _ReportsViewState extends State<ReportsView> {
   String _selectedFilter = 'All';
+  late Future<List<ReportItem>> _reportsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReports();
+  }
+
+  void _loadReports() {
+    _reportsFuture = widget.reportRepo.getReports(type: _selectedFilter);
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        SectionHeader(
-          title: 'Automated Intelligence Reports',
-          subtitle: 'Scheduled market synthesis digests delivered daily, weekly, and monthly.',
-          trailing: Wrap(
-            spacing: 8,
-            children: ['All', 'Daily', 'Weekly', 'Monthly'].map((type) {
-              final isSel = _selectedFilter == type;
-              return ChoiceChip(
-                label: Text(type),
-                selected: isSel,
-                onSelected: (_) => setState(() => _selectedFilter = type),
-              );
-            }).toList(),
+        padding: const EdgeInsets.all(24),
+        children: [
+          SectionHeader(
+            title: 'Automated Intelligence Reports',
+            subtitle: 'Scheduled market synthesis digests delivered daily, weekly, and monthly.',
+            trailing: Wrap(
+              spacing: 8,
+              children: ['All', 'Daily', 'Weekly', 'Monthly'].map((type) {
+                final isSel = _selectedFilter == type;
+                return ChoiceChip(
+                  label: Text(type),
+                  selected: isSel,
+                  onSelected: (_) {
+                    setState(() {
+                      _selectedFilter = type;
+                      _loadReports();
+                    });
+                  },
+                );
+              }).toList(),
+            ),
           ),
-        ),
-        FutureBuilder<List<ReportItem>>(
-          future: widget.reportRepo.getReports(type: _selectedFilter),
+          FutureBuilder<List<ReportItem>>(
+            future: _reportsFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: Padding(

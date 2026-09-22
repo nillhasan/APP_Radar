@@ -33,11 +33,21 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
   String _platform = 'All Platforms';
   String _sortBy = 'Opportunity Score';
   Set<String> _watchlistedAppIds = {};
+  late Future<List<AppItem>> _oppsFuture;
 
   @override
   void initState() {
     super.initState();
+    _loadOpportunities();
     _loadWatchlist();
+  }
+
+  void _loadOpportunities() {
+    _oppsFuture = widget.oppRepo.getFilteredOpportunities(
+      category: _category,
+      platform: _platform,
+      sortBy: _sortBy,
+    );
   }
 
   Future<void> _loadWatchlist() async {
@@ -54,29 +64,40 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SectionHeader(
-          title: 'Opportunity Discovery Matrix',
-          subtitle:
-              'Filter and evaluate vetted mobile application opportunities ranked by multi-signal algorithms.',
-        ),
-        FilterBar(
-          searchQuery: _search,
-          onSearchChanged: (val) => setState(() => _search = val),
-          selectedCategory: _category,
-          onCategoryChanged: (val) => setState(() => _category = val),
-          selectedPlatform: _platform,
-          onPlatformChanged: (val) => setState(() => _platform = val),
-          selectedSort: _sortBy,
-          onSortChanged: (val) => setState(() => _sortBy = val),
-        ),
-        FutureBuilder<List<AppItem>>(
-          future: widget.oppRepo.getFilteredOpportunities(
-            category: _category,
-            platform: _platform,
-            sortBy: _sortBy,
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SectionHeader(
+            title: 'Opportunity Discovery Matrix',
+            subtitle:
+                'Filter and evaluate vetted mobile application opportunities ranked by multi-signal algorithms.',
           ),
+          FilterBar(
+            searchQuery: _search,
+            onSearchChanged: (val) => setState(() => _search = val),
+            selectedCategory: _category,
+            onCategoryChanged: (val) {
+              setState(() {
+                _category = val;
+                _loadOpportunities();
+              });
+            },
+            selectedPlatform: _platform,
+            onPlatformChanged: (val) {
+              setState(() {
+                _platform = val;
+                _loadOpportunities();
+              });
+            },
+            selectedSort: _sortBy,
+            onSortChanged: (val) {
+              setState(() {
+                _sortBy = val;
+                _loadOpportunities();
+              });
+            },
+          ),
+          FutureBuilder<List<AppItem>>(
+            future: _oppsFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: Padding(

@@ -7,6 +7,10 @@ class SupabaseMarketTrendRepository implements MarketTrendRepository {
   final AppRepository appRepository;
   final MarketTrendRepository fallbackRepo;
 
+  List<CategoryTrend>? _cachedTrends;
+  DateTime? _lastFetchTime;
+  static const Duration _cacheTtl = Duration(minutes: 5);
+
   SupabaseMarketTrendRepository({
     required this.appRepository,
     required this.fallbackRepo,
@@ -14,10 +18,19 @@ class SupabaseMarketTrendRepository implements MarketTrendRepository {
 
   @override
   Future<List<CategoryTrend>> getCategoryTrends({String timeframe = '30 Days'}) async {
+    if (_cachedTrends != null && _lastFetchTime != null) {
+      if (DateTime.now().difference(_lastFetchTime!) < _cacheTtl) {
+        return _cachedTrends!;
+      }
+    }
+
     try {
       final allApps = await appRepository.getAllApps();
       if (allApps.isEmpty) {
-        return await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+        final fallback = await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+        _cachedTrends = fallback;
+        _lastFetchTime = DateTime.now();
+        return fallback;
       }
 
       // Group apps by category
@@ -60,9 +73,15 @@ class SupabaseMarketTrendRepository implements MarketTrendRepository {
 
       // Sort by highest growth rate
       trends.sort((a, b) => b.growthRate.compareTo(a.growthRate));
-      return trends.isNotEmpty ? trends : await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+      final result = trends.isNotEmpty ? trends : await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+      _cachedTrends = result;
+      _lastFetchTime = DateTime.now();
+      return result;
     } catch (_) {
-      return await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+      final fallback = await fallbackRepo.getCategoryTrends(timeframe: timeframe);
+      _cachedTrends = fallback;
+      _lastFetchTime = DateTime.now();
+      return fallback;
     }
   }
 

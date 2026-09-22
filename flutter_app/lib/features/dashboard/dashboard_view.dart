@@ -11,7 +11,7 @@ import '../../widgets/app_icon_widget.dart';
 import '../../widgets/top_charts/top_charts_leaderboard.dart';
 import '../../data/repositories/app_repository.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends StatefulWidget {
   final OpportunityRepository oppRepo;
   final MarketTrendRepository trendRepo;
   final AppRepository? appRepo;
@@ -28,15 +28,32 @@ class DashboardView extends StatelessWidget {
   });
 
   @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
+  late Future<List<dynamic>> _dataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    _dataFuture = Future.wait([
+      widget.oppRepo.getTopOpportunities(limit: 5),
+      widget.trendRepo.getCategoryTrends(),
+      widget.appRepo?.getAllApps() ?? widget.oppRepo.getFilteredOpportunities(),
+    ]);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1080;
 
     return FutureBuilder<List<dynamic>>(
-      future: Future.wait([
-        oppRepo.getTopOpportunities(limit: 5),
-        trendRepo.getCategoryTrends(),
-        appRepo?.getAllApps() ?? oppRepo.getFilteredOpportunities(),
-      ]),
+      future: _dataFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -46,42 +63,48 @@ class DashboardView extends StatelessWidget {
         final trends = snapshot.data![1] as List<CategoryTrend>;
         final allApps = snapshot.data![2] as List<AppItem>;
 
-        return ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            SectionHeader(
-              title: 'Discover Tomorrow’s App Opportunities Today',
-              subtitle:
-                  'AI-computed market velocity, store signals, and review sentiment across ${allApps.length} tracked applications.',
-            ),
-            _buildKpiGrid(allApps),
-            const SizedBox(height: 24),
-            TopChartsLeaderboard(
-              apps: allApps,
-              onOpenApp: onOpenApp,
-            ),
-            const SizedBox(height: 24),
-            if (isDesktop)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: _buildTopOpportunitiesCard(topApps),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    flex: 3,
-                    child: _buildMarketTrendsCard(trends),
-                  ),
-                ],
-              )
-            else ...[
-              _buildTopOpportunitiesCard(topApps),
-              const SizedBox(height: 20),
-              _buildMarketTrendsCard(trends),
+        return RefreshIndicator(
+          onRefresh: () async {
+            setState(() => _loadData());
+            await _dataFuture;
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              SectionHeader(
+                title: 'Discover Tomorrow’s App Opportunities Today',
+                subtitle:
+                    'AI-computed market velocity, store signals, and review sentiment across ${allApps.length} tracked applications.',
+              ),
+              _buildKpiGrid(allApps),
+              const SizedBox(height: 24),
+              TopChartsLeaderboard(
+                apps: allApps,
+                onOpenApp: widget.onOpenApp,
+              ),
+              const SizedBox(height: 24),
+              if (isDesktop)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: _buildTopOpportunitiesCard(topApps),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      flex: 3,
+                      child: _buildMarketTrendsCard(trends),
+                    ),
+                  ],
+                )
+              else ...[
+                _buildTopOpportunitiesCard(topApps),
+                const SizedBox(height: 20),
+                _buildMarketTrendsCard(trends),
+              ],
             ],
-          ],
+          ),
         );
       },
     );
@@ -272,7 +295,7 @@ class DashboardView extends StatelessWidget {
               ScoreBadge(score: app.opportunityScore),
               const SizedBox(width: 12),
               FilledButton.tonal(
-                onPressed: () => onOpenApp(app),
+                onPressed: () => widget.onOpenApp(app),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -408,7 +431,7 @@ class DashboardView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: onNavigateToBuildAI,
+                onPressed: widget.onNavigateToBuildAI,
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.primary,

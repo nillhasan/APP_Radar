@@ -7,13 +7,32 @@ class SupabaseReportRepository implements ReportRepository {
   final SupabaseClient client;
   final ReportRepository fallbackRepo;
 
+  List<ReportItem>? _cachedReports;
+  DateTime? _lastFetchTime;
+  static const Duration _cacheTtl = Duration(minutes: 5);
+
   SupabaseReportRepository({
     required this.client,
     required this.fallbackRepo,
   });
 
+  /// Invalidate cache manually
+  void invalidateCache() {
+    _cachedReports = null;
+    _lastFetchTime = null;
+  }
+
   @override
-  Future<List<ReportItem>> getReports({String? type}) async {
+  Future<List<ReportItem>> getReports({String? type, bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedReports != null && _lastFetchTime != null) {
+      if (DateTime.now().difference(_lastFetchTime!) < _cacheTtl) {
+        if (type == null || type == 'All') {
+          return _cachedReports!;
+        }
+        return _cachedReports!.where((r) => r.type.toLowerCase() == type.toLowerCase()).toList();
+      }
+    }
+
     try {
       final response = await client
           .from('reports')
@@ -23,21 +42,34 @@ class SupabaseReportRepository implements ReportRepository {
 
       final List<dynamic> data = response as List<dynamic>;
       if (data.isEmpty) {
-        return await fallbackRepo.getReports(type: type);
+        final fallback = await fallbackRepo.getReports(type: type);
+        _cachedReports = fallback;
+        _lastFetchTime = DateTime.now();
+        return fallback;
       }
 
       final items = data.map((json) => _mapJsonToReportItem(json as Map<String, dynamic>)).toList();
+      _cachedReports = items;
+      _lastFetchTime = DateTime.now();
       if (type == null || type == 'All') {
         return items;
       }
       return items.where((r) => r.type.toLowerCase() == type.toLowerCase()).toList();
     } catch (e) {
-      return await fallbackRepo.getReports(type: type);
+      final fallback = await fallbackRepo.getReports(type: type);
+      _cachedReports = fallback;
+      _lastFetchTime = DateTime.now();
+      return fallback;
     }
   }
 
   @override
   Future<ReportItem?> getReportById(String id) async {
+    if (_cachedReports != null) {
+      final matched = _cachedReports!.where((r) => r.id == id);
+      if (matched.isNotEmpty) return matched.first;
+    }
+
     try {
       final response = await client
           .from('reports')
@@ -56,6 +88,10 @@ class SupabaseReportRepository implements ReportRepository {
 
   @override
   Future<ReportItem> getLatestDailyReport() async {
+    if (_cachedReports != null && _cachedReports!.isNotEmpty) {
+      return _cachedReports!.first;
+    }
+
     try {
       final response = await client
           .from('reports')
