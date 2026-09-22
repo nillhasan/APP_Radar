@@ -569,12 +569,12 @@ class _PricingModalState extends State<PricingModal> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.credit_card, size: 40, color: Colors.white),
+              child: const Icon(Icons.hourglass_top, size: 36, color: Colors.white),
             ),
           ),
           const SizedBox(height: 20),
           const Text(
-            'Checkout Opened in New Tab',
+            'Awaiting Payment in Stripe',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22,
@@ -585,7 +585,7 @@ class _PricingModalState extends State<PricingModal> {
           ),
           const SizedBox(height: 8),
           Text(
-            'We launched Stripe in your browser. Please enter your card details on Stripe (${_isAnnual ? "\$23/month billed annually" : "\$29/month billed monthly"}).',
+            'We opened the secure Stripe checkout tab in your browser. Please enter your card details on Stripe to complete your Pro subscription (${_isAnnual ? "\$23/mo billed annually" : "\$29/mo billed monthly"}).',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -593,43 +593,74 @@ class _PricingModalState extends State<PricingModal> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () async {
-              await widget.subscriptionService.handlePaymentSuccess();
-              if (mounted) {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppColors.primary,
-                    duration: Duration(seconds: 5),
-                    content: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.white),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            '🎉 Payment Verified! Welcome to Pro Builder. All features unlocked.',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ],
-                    ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.lock_outline, size: 16, color: AppColors.primary),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Once payment is submitted on Stripe, you will be redirected automatically and your Pro features will be unlocked immediately.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
-                );
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          FilledButton.tonalIcon(
+            onPressed: () async {
+              await widget.subscriptionService.fetchSubscriptionFromCloud();
+              if (widget.subscriptionService.isPro) {
+                if (mounted) {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppColors.primary,
+                      duration: Duration(seconds: 5),
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '🎉 Payment Verified! Welcome to Pro Builder. All features unlocked.',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Payment not yet detected. Please submit your payment on the Stripe tab first.'),
+                      backgroundColor: AppColors.warning,
+                      duration: Duration(seconds: 4),
+                    ),
+                  );
+                }
               }
             },
-            icon: const Icon(Icons.check_circle_outline, size: 18),
+            icon: const Icon(Icons.sync, size: 16),
             label: const Text(
-              '✓ I Have Completed Payment — Activate Pro',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              'I Finished Paying on Stripe — Check Status',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
             style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 44),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),

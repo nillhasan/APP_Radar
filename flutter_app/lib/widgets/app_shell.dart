@@ -140,15 +140,13 @@ class _AppShellState extends State<AppShell> {
   void _checkPaymentReturnUrl() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        final email = widget.authService.userEmail.toLowerCase().trim();
-        final isVerifiedUser = email == 'zaranestshop@gmail.com' || email == 'dulal.hasan@gmail.com';
         final params = Uri.base.queryParameters;
         final hasPaymentParam = params['payment'] == 'success' || params.containsKey('session_id');
 
-        if (hasPaymentParam || isVerifiedUser) {
+        if (hasPaymentParam) {
           final sessionId = params['session_id'];
           await widget.subscriptionService.handlePaymentSuccess(sessionId: sessionId);
-          if (mounted && hasPaymentParam) {
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 backgroundColor: AppColors.primary,
