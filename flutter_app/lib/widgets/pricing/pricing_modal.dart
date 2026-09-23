@@ -207,7 +207,7 @@ class _PricingModalState extends State<PricingModal> {
                   children: [
                     Icon(Icons.verified_user_outlined, size: 14, color: AppColors.textMuted),
                     Text(
-                      'Secured by Stripe. Cancel anytime with 1 click. No questions asked.',
+                      'Guaranteed 256-bit secure checkout. Cancel anytime with 1 click. No questions asked.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                     ),
@@ -461,7 +461,7 @@ class _PricingModalState extends State<PricingModal> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.bolt, size: 16),
-              label: Text(_isUpgrading ? 'Connecting Stripe...' : 'Upgrade to Pro Builder'),
+              label: Text(_isUpgrading ? 'Opening Checkout...' : 'Upgrade to Pro Builder'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 44),
                 backgroundColor: AppColors.primary,
@@ -574,7 +574,7 @@ class _PricingModalState extends State<PricingModal> {
           ),
           const SizedBox(height: 20),
           const Text(
-            'Awaiting Payment in Stripe',
+            'Awaiting Payment Confirmation',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22,
@@ -585,7 +585,7 @@ class _PricingModalState extends State<PricingModal> {
           ),
           const SizedBox(height: 8),
           Text(
-            'We opened the secure Stripe checkout tab in your browser. Please enter your card details on Stripe to complete your Pro subscription (${_isAnnual ? "\$23/mo billed annually" : "\$29/mo billed monthly"}).',
+            'We opened the secure checkout tab in your browser. Please enter your payment details to complete your Pro subscription (${_isAnnual ? "\$23/mo billed annually" : "\$29/mo billed monthly"}).',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -607,7 +607,7 @@ class _PricingModalState extends State<PricingModal> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Once payment is submitted on Stripe, you will be redirected automatically and your Pro features will be unlocked immediately.',
+                    'Once payment is completed, you will be redirected automatically and your Pro features will be unlocked immediately.',
                     style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                 ),
@@ -646,7 +646,7 @@ class _PricingModalState extends State<PricingModal> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Payment not yet detected. Please submit your payment on the Stripe tab first.'),
+                      content: Text('Payment not yet detected. Please complete checkout in the payment tab first.'),
                       backgroundColor: AppColors.warning,
                       duration: Duration(seconds: 4),
                     ),
@@ -656,7 +656,7 @@ class _PricingModalState extends State<PricingModal> {
             },
             icon: const Icon(Icons.sync, size: 16),
             label: const Text(
-              'I Finished Paying on Stripe — Check Status',
+              'I\'ve Completed Payment — Verify Status',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
             style: FilledButton.styleFrom(
@@ -671,7 +671,7 @@ class _PricingModalState extends State<PricingModal> {
               TextButton.icon(
                 onPressed: _handleStripeCheckout,
                 icon: const Icon(Icons.open_in_new, size: 14),
-                label: const Text('Re-open Stripe Tab', style: TextStyle(fontSize: 12)),
+                label: const Text('Re-open Checkout Tab', style: TextStyle(fontSize: 12)),
               ),
               const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
               TextButton(
