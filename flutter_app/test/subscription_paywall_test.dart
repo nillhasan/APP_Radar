@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app_radar/services/subscription/subscription_service.dart';
+import 'package:app_radar/services/subscription/subscription_storage.dart';
+import 'package:app_radar/services/auth/auth_service.dart';
+import 'package:app_radar/services/ai/ai_service.dart';
+import 'package:app_radar/data/repositories/app_repository.dart';
+import 'package:app_radar/data/repositories/opportunity_repository.dart';
+import 'package:app_radar/data/repositories/market_trend_repository.dart';
+import 'package:app_radar/data/repositories/report_repository.dart';
+import 'package:app_radar/data/repositories/watchlist_repository.dart';
+import 'package:app_radar/widgets/app_shell.dart';
 import 'package:app_radar/widgets/pricing/pricing_modal.dart';
 import 'package:app_radar/main.dart';
 
@@ -96,6 +105,9 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
+      SubscriptionStorage.setStoredTier(null);
+      addTearDown(() => SubscriptionStorage.setStoredTier(null));
+
       await tester.pumpWidget(const AppRadarApp());
       await tester.pumpAndSettle();
 
@@ -109,6 +121,43 @@ void main() {
 
       expect(find.byType(PricingModal), findsOneWidget);
       expect(find.text('Unlock Full Market Intelligence & AI Blueprints'), findsOneWidget);
+    });
+
+    testWidgets('Header removes Upgrade Pro button and displays Pro badge when subscription is Pro', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(() => SubscriptionStorage.setStoredTier(null));
+
+      final auth = AuthService();
+      auth.setMockUser(email: 'dulal.hasan@gmail.com', fullName: 'Dulal hasan');
+
+      final sub = SubscriptionService(authService: auth);
+      sub.upgradeToPro();
+
+      final appRepo = MockAppRepository();
+      await tester.pumpWidget(MaterialApp(
+        home: AppShell(
+          appRepo: appRepo,
+          oppRepo: MockOpportunityRepository(appRepository: appRepo),
+          trendRepo: MockMarketTrendRepository(),
+          reportRepo: MockReportRepository(),
+          watchlistRepo: MockWatchlistRepository(appRepository: appRepo),
+          aiService: MockAIService(),
+          authService: auth,
+          subscriptionService: sub,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // "Upgrade Pro" button must NOT exist
+      expect(find.text('Upgrade Pro'), findsNothing);
+      expect(find.text('PRO BUILDER'), findsNothing);
+
+      // Must display user's name and 'Pro' under it
+      expect(find.text('Dulal hasan'), findsOneWidget);
+      expect(find.text('Pro'), findsOneWidget);
     });
   });
 }

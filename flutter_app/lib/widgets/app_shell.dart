@@ -157,7 +157,7 @@ class _AppShellState extends State<AppShell> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '🎉 Payment Verified! Welcome to Pro Builder. All features are unlocked.',
+                        '🎉 Payment Verified! Welcome to Pro. All features are unlocked.',
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -341,28 +341,6 @@ class _AppShellState extends State<AppShell> {
             ),
           ),
           const SizedBox(width: 8),
-        ] else ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.workspace_premium, size: 14, color: Colors.white),
-                SizedBox(width: 4),
-                Text(
-                  'PRO BUILDER',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
         ],
         Padding(
           padding: const EdgeInsets.only(right: 16),
@@ -421,7 +399,7 @@ class _AppShellState extends State<AppShell> {
                 backgroundColor: AppColors.primary,
                 content: Text(
                   widget.subscriptionService.isPro
-                      ? '🎉 Active Pro Builder subscription confirmed!'
+                      ? '🎉 Active Pro subscription confirmed!'
                       : 'Subscription status synced with cloud.',
                 ),
               ),
@@ -459,7 +437,7 @@ class _AppShellState extends State<AppShell> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  widget.subscriptionService.isPro ? 'PRO BUILDER PLAN' : 'FREE BUILDER PLAN',
+                  widget.subscriptionService.isPro ? 'PRO PLAN' : 'FREE PLAN',
                   style: TextStyle(
                     color: widget.subscriptionService.isPro ? AppColors.aiPurple : AppColors.success,
                     fontSize: 10,
@@ -528,32 +506,64 @@ class _AppShellState extends State<AppShell> {
         ),
       ],
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: widget.subscriptionService.isPro
+                ? AppColors.aiPurple.withValues(alpha: 0.35)
+                : AppColors.border,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             CircleAvatar(
-              radius: 14,
-              backgroundColor: AppColors.primary,
+              radius: 15,
+              backgroundColor: widget.subscriptionService.isPro
+                  ? const Color(0xFF8B5CF6)
+                  : AppColors.primary,
               child: Text(
                 auth.userInitials,
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
               ),
             ),
-            if (isDesktop) ...[
-              const SizedBox(width: 8),
-              Text(
-                auth.userDisplayName,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.textSecondary),
-            ],
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  auth.userDisplayName,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.subscriptionService.isPro ? 'Pro' : 'Free',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: widget.subscriptionService.isPro ? FontWeight.w600 : FontWeight.w400,
+                    color: widget.subscriptionService.isPro ? AppColors.aiPurple : AppColors.textMuted,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
           ],
         ),
       ),

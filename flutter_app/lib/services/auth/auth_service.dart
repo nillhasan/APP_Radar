@@ -12,11 +12,29 @@ class AuthService extends ChangeNotifier {
 
   User? get currentUser => _client?.auth.currentUser;
 
-  bool get isAuthenticated => currentUser != null;
+  String? _mockEmail;
+  String? _mockDisplayName;
 
-  String get userEmail => currentUser?.email ?? '';
+  @visibleForTesting
+  void setMockUser({required String email, String? fullName}) {
+    _mockEmail = email;
+    _mockDisplayName = fullName ?? email.split('@').first;
+    notifyListeners();
+  }
+
+  @visibleForTesting
+  void clearMockUser() {
+    _mockEmail = null;
+    _mockDisplayName = null;
+    notifyListeners();
+  }
+
+  bool get isAuthenticated => _mockEmail != null || currentUser != null;
+
+  String get userEmail => _mockEmail ?? currentUser?.email ?? '';
 
   String get userDisplayName {
+    if (_mockDisplayName != null) return _mockDisplayName!;
     final meta = currentUser?.userMetadata;
     if (meta != null && meta['full_name'] != null) {
       return meta['full_name'].toString();

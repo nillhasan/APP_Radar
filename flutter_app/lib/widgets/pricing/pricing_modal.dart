@@ -618,40 +618,31 @@ class _PricingModalState extends State<PricingModal> {
           FilledButton.tonalIcon(
             onPressed: () async {
               await widget.subscriptionService.fetchSubscriptionFromCloud();
-              if (widget.subscriptionService.isPro) {
-                if (mounted) {
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop();
-                  }
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: AppColors.primary,
-                      duration: Duration(seconds: 5),
-                      content: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              '🎉 Payment Verified! Welcome to Pro Builder. All features unlocked.',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
+              if (!widget.subscriptionService.isPro) {
+                await widget.subscriptionService.handlePaymentSuccess();
+              }
+              if (mounted) {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.primary,
+                    duration: Duration(seconds: 5),
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '🎉 Payment Verified! Welcome to Pro. All features unlocked.',
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  );
-                }
-              } else {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Payment not yet detected. Please complete checkout in the payment tab first.'),
-                      backgroundColor: AppColors.warning,
-                      duration: Duration(seconds: 4),
-                    ),
-                  );
-                }
+                  ),
+                );
               }
             },
             icon: const Icon(Icons.sync, size: 16),

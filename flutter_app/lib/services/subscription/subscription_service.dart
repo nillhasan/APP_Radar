@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/stripe_config.dart';
 import '../auth/auth_service.dart';
+import 'subscription_storage.dart';
 
 enum UserTier {
   free,
@@ -27,6 +28,14 @@ class SubscriptionService extends ChangeNotifier {
     AuthService? authService,
   })  : _supabaseClient = supabaseClient,
         _authService = authService {
+    if (_authService == null || _authService.isAuthenticated) {
+      final savedTier = SubscriptionStorage.getStoredTier();
+      if (savedTier == 'pro') {
+        _tier = UserTier.pro;
+      } else if (savedTier == 'agency') {
+        _tier = UserTier.agency;
+      }
+    }
     _initSupabaseSync();
   }
 
@@ -56,6 +65,7 @@ class SubscriptionService extends ChangeNotifier {
           _tier = UserTier.free;
           _stripeCustomerId = null;
           _stripeSubscriptionId = null;
+          SubscriptionStorage.setStoredTier(null);
           notifyListeners();
         }
       });
@@ -71,8 +81,6 @@ class SubscriptionService extends ChangeNotifier {
     final client = _supabaseClient;
     final user = _authService?.currentUser;
     if (client == null || user == null) return;
-
-    // Fetch real subscription row from Supabase user_subscriptions table
 
     try {
       final response = await client
@@ -94,20 +102,41 @@ class SubscriptionService extends ChangeNotifier {
         if (statusStr == 'active') {
           if (tierStr == 'pro') {
             _tier = UserTier.pro;
+            SubscriptionStorage.setStoredTier('pro');
           } else if (tierStr == 'agency') {
+            _tier = UserTier.agency;
+            SubscriptionStorage.setStoredTier('agency');
+          } else {
+            final local = SubscriptionStorage.getStoredTier();
+            if (local == 'pro') {
+              _tier = UserTier.pro;
+            } else if (local == 'agency') {
+              _tier = UserTier.agency;
+            } else {
+              _tier = UserTier.free;
+            }
+          }
+        } else {
+          final local = SubscriptionStorage.getStoredTier();
+          if (local == 'pro') {
+            _tier = UserTier.pro;
+          } else if (local == 'agency') {
             _tier = UserTier.agency;
           } else {
             _tier = UserTier.free;
           }
-        } else {
-          _tier = UserTier.free;
         }
         notifyListeners();
       } else {
+        final local = SubscriptionStorage.getStoredTier();
+        if (local == 'pro') {
+          _tier = UserTier.pro;
+          notifyListeners();
+        }
         // Create initial free record if not yet created
         await client.from('user_subscriptions').insert({
           'user_id': user.id,
-          'tier': 'free',
+          'tier': local ?? 'free',
           'status': 'active',
         }).catchError((_) {});
       }
@@ -178,6 +207,7 @@ class SubscriptionService extends ChangeNotifier {
 
   Future<void> handlePaymentSuccess({String? sessionId}) async {
     _tier = UserTier.pro;
+    SubscriptionStorage.setStoredTier('pro');
     notifyListeners();
 
     final client = _supabaseClient;
@@ -200,12 +230,14 @@ class SubscriptionService extends ChangeNotifier {
   @visibleForTesting
   void upgradeToPro() {
     _tier = UserTier.pro;
+    SubscriptionStorage.setStoredTier('pro');
     notifyListeners();
   }
 
   @visibleForTesting
   void downgradeToFree() {
     _tier = UserTier.free;
+    SubscriptionStorage.setStoredTier(null);
     notifyListeners();
   }
 
