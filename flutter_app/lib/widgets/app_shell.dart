@@ -109,9 +109,12 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
+  final Set<int> _visitedTabs = {0};
+
   void _navigateToTab(int index) {
     setState(() {
       _selectedIndex = index;
+      _visitedTabs.add(index);
       _selectedAppForDetail = null;
       _activeBlueprint = null;
       if (index != 3) {
@@ -755,65 +758,79 @@ class _AppShellState extends State<AppShell> {
       );
     }
 
-    switch (_selectedIndex) {
-      case 0:
-        return DashboardView(
-          oppRepo: widget.oppRepo,
-          trendRepo: widget.trendRepo,
-          appRepo: widget.appRepo,
-          onOpenApp: _openAppDetail,
-          onNavigateToBuildAI: () => _navigateToTab(8),
-        );
-      case 1:
-        return OpportunitiesView(
-          oppRepo: widget.oppRepo,
-          watchlistRepo: widget.watchlistRepo,
-          onOpenApp: _openAppDetail,
-        );
-      case 2:
-        return AppExplorerView(
-          appRepo: widget.appRepo,
-          aiService: widget.aiService,
-          subscriptionService: widget.subscriptionService,
-          authService: widget.authService,
-          onOpenApp: _openAppDetail,
-        );
-      case 3:
-        return CompetitorsView(
-          appRepo: widget.appRepo,
-          onOpenApp: _openAppDetail,
-          onBuildWithAI: (app) => _navigateToTab(8),
-          initialApp: _selectedAppForCompetitor,
-        );
-      case 4:
-        return MarketTrendsView(trendRepo: widget.trendRepo);
-      case 5:
-        return WatchlistView(
-          watchlistRepo: widget.watchlistRepo,
-          onOpenApp: _openAppDetail,
-          onBuildWithAI: (app) => _navigateToTab(8),
-          onExploreOpportunities: () => _navigateToTab(1),
-        );
-      case 6:
-        return ReportsView(
-          reportRepo: widget.reportRepo,
-          onViewDailyReport: () => _navigateToTab(7),
-        );
-      case 7:
-        return DailyReportPreviewView(
-          oppRepo: widget.oppRepo,
-          onOpenApp: _openAppDetail,
-        );
-      case 8:
-        return BuildWithAIView(
-          appRepo: widget.appRepo,
-          aiService: widget.aiService,
-          subscriptionService: widget.subscriptionService,
-          onBlueprintGenerated: _openBlueprint,
-        );
-      case 9:
-      default:
-        return const SettingsView();
-    }
+    _visitedTabs.add(_selectedIndex);
+
+    return IndexedStack(
+      index: _selectedIndex,
+      children: [
+        _visitedTabs.contains(0)
+            ? DashboardView(
+                oppRepo: widget.oppRepo,
+                trendRepo: widget.trendRepo,
+                appRepo: widget.appRepo,
+                onOpenApp: _openAppDetail,
+                onNavigateToBuildAI: () => _navigateToTab(8),
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(1)
+            ? OpportunitiesView(
+                oppRepo: widget.oppRepo,
+                watchlistRepo: widget.watchlistRepo,
+                onOpenApp: _openAppDetail,
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(2)
+            ? AppExplorerView(
+                appRepo: widget.appRepo,
+                aiService: widget.aiService,
+                subscriptionService: widget.subscriptionService,
+                authService: widget.authService,
+                onOpenApp: _openAppDetail,
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(3)
+            ? CompetitorsView(
+                appRepo: widget.appRepo,
+                onOpenApp: _openAppDetail,
+                onBuildWithAI: (app) => _navigateToTab(8),
+                initialApp: _selectedAppForCompetitor,
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(4)
+            ? MarketTrendsView(trendRepo: widget.trendRepo)
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(5)
+            ? WatchlistView(
+                watchlistRepo: widget.watchlistRepo,
+                onOpenApp: _openAppDetail,
+                onBuildWithAI: (app) => _navigateToTab(8),
+                onExploreOpportunities: () => _navigateToTab(1),
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(6)
+            ? ReportsView(
+                reportRepo: widget.reportRepo,
+                onViewDailyReport: () => _navigateToTab(7),
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(7)
+            ? DailyReportPreviewView(
+                oppRepo: widget.oppRepo,
+                onOpenApp: _openAppDetail,
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(8)
+            ? BuildWithAIView(
+                appRepo: widget.appRepo,
+                aiService: widget.aiService,
+                subscriptionService: widget.subscriptionService,
+                onBlueprintGenerated: _openBlueprint,
+              )
+            : const SizedBox.shrink(),
+        _visitedTabs.contains(9)
+            ? const SettingsView()
+            : const SizedBox.shrink(),
+      ],
+    );
   }
 }

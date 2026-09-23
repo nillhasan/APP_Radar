@@ -23,6 +23,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
   String _selectedRegion = 'US';
   String _selectedCategory = 'All Categories';
   int _mobileSelectedTab = 0; // 0: Top Free, 1: Top Paid, 2: Top Grossing
+  bool _isExpanded = false;
 
   final List<String> _stores = ['All Stores', 'iOS App Store', 'Google Play'];
   final List<Map<String, String>> _regions = [
@@ -715,21 +716,60 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
                 ),
               ),
             )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: apps.length,
-              separatorBuilder: (_, __) => const Divider(
-                height: 1,
-                thickness: 1,
-                color: AppColors.borderLight,
+          else ...[
+            Builder(builder: (context) {
+              const maxInitialItems = 15;
+              final displayApps = _isExpanded ? apps : apps.take(maxInitialItems).toList();
+
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: displayApps.length,
+                separatorBuilder: (_, __) => const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColors.borderLight,
+                ),
+                itemBuilder: (context, index) {
+                  final app = displayApps[index];
+                  return _buildAppRow(app, index + 1, isGrossing);
+                },
+              );
+            }),
+            if (apps.length > 15)
+              InkWell(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(11)),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSecondary.withValues(alpha: 0.5),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(11)),
+                    border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.6))),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isExpanded ? 'Show Top 15' : 'Show All ${apps.length} Apps',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: headerColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: headerColor,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              itemBuilder: (context, index) {
-                final app = apps[index];
-                return _buildAppRow(app, index + 1, isGrossing);
-              },
-            ),
+          ],
         ],
       ),
     );

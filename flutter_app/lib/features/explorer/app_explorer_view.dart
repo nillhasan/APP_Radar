@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
@@ -45,6 +47,11 @@ class _AppExplorerViewState extends State<AppExplorerView> {
   final FileExportService _exportService = const FileExportService();
   late Future<List<AppItem>> _appsFuture;
 
+  // Pagination & Debouncing State
+  int _currentPage = 0;
+  int _rowsPerPage = 20;
+  Timer? _searchDebounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +69,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
     widget.subscriptionService?.removeListener(_onSubscriptionChanged);
     _urlController.dispose();
     super.dispose();
@@ -318,11 +326,27 @@ class _AppExplorerViewState extends State<AppExplorerView> {
 
           FilterBar(
             searchQuery: _search,
-            onSearchChanged: (val) => setState(() => _search = val),
+            onSearchChanged: (val) {
+              _searchDebounceTimer?.cancel();
+              _searchDebounceTimer = Timer(const Duration(milliseconds: 150), () {
+                if (mounted) {
+                  setState(() {
+                    _search = val;
+                    _currentPage = 0;
+                  });
+                }
+              });
+            },
             selectedCategory: _category,
-            onCategoryChanged: (val) => setState(() => _category = val),
+            onCategoryChanged: (val) => setState(() {
+              _category = val;
+              _currentPage = 0;
+            }),
             selectedPlatform: _platform,
-            onPlatformChanged: (val) => setState(() => _platform = val),
+            onPlatformChanged: (val) => setState(() {
+              _platform = val;
+              _currentPage = 0;
+            }),
           ),
           FutureBuilder<List<AppItem>>(
             future: _appsFuture,
@@ -360,6 +384,13 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                 );
               }
 
+              final totalCount = apps.length;
+              final maxPages = (totalCount / _rowsPerPage).ceil().clamp(1, 9999);
+              if (_currentPage >= maxPages) {
+                _currentPage = maxPages - 1;
+              }
+              final pagedApps = apps.skip(_currentPage * _rowsPerPage).take(_rowsPerPage).toList();
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -389,7 +420,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                         DataColumn(label: Text('Opportunity Score', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
                         DataColumn(label: Text('Action', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
                       ],
-                      rows: apps.map((app) {
+                      rows: pagedApps.map((app) {
                         return DataRow(
                           cells: [
                             DataCell(
@@ -459,11 +490,104 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                _buildPaginationControls(totalCount, maxPages),
               ],
             );
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildPaginationControls(int totalCount, int maxPages) {
+    final startItem = totalCount == 0 ? 0 : (_currentPage * _rowsPerPage + 1);
+    final endItem = math.min((_currentPage + 1) * _rowsPerPage, totalCount);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 10,
+        children: [
+          Text(
+            'Showing $startItem–$endItem of $totalCount applications',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Per page: ', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _rowsPerPage,
+                    isDense: true,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    items: const [
+                      DropdownMenuItem(value: 20, child: Text('20')),
+                      DropdownMenuItem(value: 50, child: Text('50')),
+                      DropdownMenuItem(value: 100, child: Text('100')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _rowsPerPage = val;
+                          _currentPage = 0;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              OutlinedButton.icon(
+                onPressed: _currentPage > 0
+                    ? () => setState(() => _currentPage--)
+                    : null,
+                icon: const Icon(Icons.chevron_left, size: 16),
+                label: const Text('Prev', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  minimumSize: Size.zero,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  'Page ${_currentPage + 1} of $maxPages',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _currentPage < maxPages - 1
+                    ? () => setState(() => _currentPage++)
+                    : null,
+                icon: const Icon(Icons.chevron_right, size: 16),
+                label: const Text('Next', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  minimumSize: Size.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

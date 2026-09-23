@@ -46,6 +46,8 @@ class AppIconWidget extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
+          cacheWidth: (size * 2).round().clamp(32, 256),
+          cacheHeight: (size * 2).round().clamp(32, 256),
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
             return Container(

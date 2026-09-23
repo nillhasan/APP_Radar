@@ -34,6 +34,7 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
   String _sortBy = 'Opportunity Score';
   Set<String> _watchlistedAppIds = {};
   late Future<List<AppItem>> _oppsFuture;
+  int _visibleCount = 20;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
   }
 
   void _loadOpportunities() {
+    _visibleCount = 20;
     _oppsFuture = widget.oppRepo.getFilteredOpportunities(
       category: _category,
       platform: _platform,
@@ -140,15 +142,31 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
               );
             }
 
+            final visibleApps = apps.take(_visibleCount).toList();
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildExportToolbar(apps),
                 const SizedBox(height: 14),
-                for (final app in apps) ...[
+                for (final app in visibleApps) ...[
                   _buildOpportunityCard(app),
                   const SizedBox(height: 16),
                 ],
+                if (apps.length > _visibleCount)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _visibleCount += 20),
+                        icon: const Icon(Icons.expand_more_rounded),
+                        label: Text('Load More Opportunities (${apps.length - _visibleCount} remaining)'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             );
           },
