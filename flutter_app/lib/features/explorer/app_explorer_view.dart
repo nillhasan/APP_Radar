@@ -6,6 +6,10 @@ import '../../data/models/negative_review_mining.dart';
 import '../../data/repositories/app_repository.dart';
 import '../../services/ai/ai_service.dart';
 import '../../services/export/file_export_service.dart';
+import '../../services/subscription/subscription_service.dart';
+import '../../services/auth/auth_service.dart';
+import '../../widgets/pricing/pricing_modal.dart';
+import '../../widgets/auth/auth_modal.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
@@ -16,12 +20,16 @@ class AppExplorerView extends StatefulWidget {
   final AppRepository appRepo;
   final ValueChanged<AppItem> onOpenApp;
   final AIService? aiService;
+  final SubscriptionService? subscriptionService;
+  final AuthService? authService;
 
   const AppExplorerView({
     super.key,
     required this.appRepo,
     required this.onOpenApp,
     this.aiService,
+    this.subscriptionService,
+    this.authService,
   });
 
   @override
@@ -41,6 +49,11 @@ class _AppExplorerViewState extends State<AppExplorerView> {
   void initState() {
     super.initState();
     _loadApps();
+    widget.subscriptionService?.addListener(_onSubscriptionChanged);
+  }
+
+  void _onSubscriptionChanged() {
+    if (mounted) setState(() {});
   }
 
   void _loadApps() {
@@ -49,8 +62,33 @@ class _AppExplorerViewState extends State<AppExplorerView> {
 
   @override
   void dispose() {
+    widget.subscriptionService?.removeListener(_onSubscriptionChanged);
     _urlController.dispose();
     super.dispose();
+  }
+
+  void _showUpgradePaywall() {
+    final sub = widget.subscriptionService;
+    if (sub != null) {
+      PricingModal.show(
+        context,
+        subscriptionService: sub,
+        authService: widget.authService,
+        featureTrigger: 'Instant Store URL Teardown (Free Limit: 1 App)',
+        onRequiresAuth: () {
+          if (widget.authService != null) {
+            AuthModal.show(context, authService: widget.authService!);
+          }
+        },
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Free accounts are limited to 1 instant store URL teardown. Upgrade to Pro for unlimited store teardowns.'),
+        backgroundColor: AppColors.aiPurple,
+        duration: Duration(seconds: 4),
+      ),
+    );
   }
 
   Future<void> _handleCustomUrlTeardown(String rawInput) async {
@@ -65,11 +103,21 @@ class _AppExplorerViewState extends State<AppExplorerView> {
       return;
     }
 
+    final sub = widget.subscriptionService;
+    if (sub != null && !sub.canPerformUrlTeardown(input)) {
+      _showUpgradePaywall();
+      return;
+    }
+
     setState(() => _isAnalyzingUrl = true);
 
     try {
       final allApps = await widget.appRepo.getAllApps();
       final targetApp = _parseOrSynthesizeApp(input, allApps);
+
+      sub?.recordUrlTeardown(input);
+      if (targetApp.appUrl != null) sub?.recordUrlTeardown(targetApp.appUrl!);
+      sub?.recordUrlTeardown(targetApp.id);
 
       if (mounted) {
         setState(() => _isAnalyzingUrl = false);
@@ -439,6 +487,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -469,6 +518,8 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              _buildQuotaBadge(),
             ],
           ),
           const SizedBox(height: 16),
@@ -507,27 +558,35 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                 ),
               ),
               const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: _isAnalyzingUrl
-                    ? null
-                    : () => _handleCustomUrlTeardown(_urlController.text),
-                icon: _isAnalyzingUrl
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.flash_on, size: 18),
-                label: Text(
-                  _isAnalyzingUrl ? 'Analyzing...' : 'Teardown App',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+              Builder(
+                builder: (context) {
+                  final isLimitReached = widget.subscriptionService?.isFree == true &&
+                      (widget.subscriptionService?.remainingFreeUrlTeardowns ?? 0) <= 0;
+                  return ElevatedButton.icon(
+                    onPressed: _isAnalyzingUrl
+                        ? null
+                        : () => _handleCustomUrlTeardown(_urlController.text),
+                    icon: _isAnalyzingUrl
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Icon(isLimitReached ? Icons.lock : Icons.flash_on, size: 18),
+                    label: Text(
+                      _isAnalyzingUrl
+                          ? 'Analyzing...'
+                          : (isLimitReached ? 'Unlock Pro to Teardown' : 'Teardown App'),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isLimitReached ? AppColors.aiPurple : AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -552,7 +611,78 @@ class _AppExplorerViewState extends State<AppExplorerView> {
     );
   }
 
+  Widget _buildQuotaBadge() {
+    final sub = widget.subscriptionService;
+    final isPro = sub?.isPro ?? false;
+
+    if (isPro) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.aiPurpleLight,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.aiPurple.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.workspace_premium, size: 14, color: AppColors.aiPurple),
+            SizedBox(width: 4),
+            Text(
+              'PRO UNLIMITED',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.aiPurple, letterSpacing: 0.5),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final remaining = sub?.remainingFreeUrlTeardowns ?? 1;
+    final hasLimitReached = remaining <= 0;
+
+    return InkWell(
+      onTap: hasLimitReached ? _showUpgradePaywall : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: hasLimitReached ? AppColors.warningLight : AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: hasLimitReached ? AppColors.warning.withValues(alpha: 0.4) : AppColors.primaryBorder,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              hasLimitReached ? Icons.lock : Icons.bolt,
+              size: 13,
+              color: hasLimitReached ? AppColors.warning : AppColors.primary,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              hasLimitReached
+                  ? 'FREE LIMIT (1/1 USED) — UPGRADE'
+                  : 'FREE PLAN: 1 TEARDOWN REMAINING',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: hasLimitReached ? AppColors.warning : AppColors.primary,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPresetChip(String label, String url) {
+    final sub = widget.subscriptionService;
+    final isPro = sub?.isPro ?? false;
+    final canPerform = isPro || (sub?.canPerformUrlTeardown(url) ?? true);
+
     return InkWell(
       onTap: () {
         _urlController.text = url;
@@ -564,11 +694,22 @@ class _AppExplorerViewState extends State<AppExplorerView> {
         decoration: BoxDecoration(
           color: AppColors.surfaceSecondary,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: canPerform ? AppColors.border : AppColors.warning.withValues(alpha: 0.4),
+          ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            ),
+            if (!canPerform) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.lock, size: 11, color: AppColors.warning),
+            ],
+          ],
         ),
       ),
     );

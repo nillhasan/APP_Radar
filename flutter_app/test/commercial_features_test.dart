@@ -8,6 +8,8 @@ import 'package:app_radar/features/explorer/app_explorer_view.dart';
 import 'package:app_radar/features/opportunities/opportunities_view.dart';
 import 'package:app_radar/services/ai/gemini_ai_service.dart';
 import 'package:app_radar/services/export/file_export_service.dart';
+import 'package:app_radar/services/subscription/subscription_service.dart';
+import 'package:app_radar/widgets/pricing/pricing_modal.dart';
 
 void main() {
   group('Part 2 Commercial Features: FileExportService Tests', () {
@@ -40,6 +42,11 @@ void main() {
 
   group('Part 2 Commercial Features: AppExplorerView Widget Tests', () {
     testWidgets('Renders URL Teardown card, preset chips, and export buttons', (tester) async {
+      tester.view.physicalSize = const Size(1280, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final appRepo = MockAppRepository();
       AppItem? selectedApp;
 
@@ -79,6 +86,11 @@ void main() {
     });
 
     testWidgets('Parses custom Google Play store link and opens teardown', (tester) async {
+      tester.view.physicalSize = const Size(1280, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final appRepo = MockAppRepository();
       AppItem? selectedApp;
 
@@ -104,6 +116,59 @@ void main() {
       expect(selectedApp, isNotNull);
       expect(selectedApp!.name, contains('Music'));
       expect(selectedApp!.platform, 'Google Play Store');
+    });
+
+    testWidgets('Free account is limited to 1 instant store URL teardown and opens PricingModal on second', (tester) async {
+      tester.view.physicalSize = const Size(1280, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final appRepo = MockAppRepository();
+      final sub = SubscriptionService();
+      sub.downgradeToFree();
+      addTearDown(() => sub.resetUrlTeardowns());
+
+      AppItem? selectedApp;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppExplorerView(
+              appRepo: appRepo,
+              subscriptionService: sub,
+              onOpenApp: (app) => selectedApp = app,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify quota badge initially shows 1 remaining
+      expect(find.text('FREE PLAN: 1 TEARDOWN REMAINING'), findsOneWidget);
+
+      // 1. Perform 1st teardown (Duolingo) -> Allowed!
+      await tester.tap(find.text('📱 Duolingo'));
+      await tester.pumpAndSettle();
+
+      expect(selectedApp, isNotNull);
+      expect(selectedApp!.name, contains('Duolingo'));
+      expect(sub.remainingFreeUrlTeardowns, 0);
+
+      // Verify quota badge now shows limit reached
+      expect(find.text('FREE LIMIT (1/1 USED) — UPGRADE'), findsOneWidget);
+
+      // 2. Try to perform 2nd teardown on a different app (Headspace) -> Blocked!
+      selectedApp = null;
+      await tester.tap(find.text('🧘 Headspace'));
+      await tester.pumpAndSettle();
+
+      // Selected app should not change
+      expect(selectedApp, isNull);
+
+      // PricingModal paywall must be opened
+      expect(find.byType(PricingModal), findsOneWidget);
+      expect(find.text('Instant Store URL Teardown (Free Limit: 1 App)'), findsOneWidget);
     });
   });
 

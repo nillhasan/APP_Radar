@@ -4,4 +4,7 @@ import 'subscription_storage_stub.dart'
 class SubscriptionStorage {
   static String? getStoredTier() => getStoredTierImpl();
   static void setStoredTier(String? tier) => setStoredTierImpl(tier);
+
+  static Set<String> getStoredUrlTeardowns() => getStoredUrlTeardownsImpl();
+  static void setStoredUrlTeardowns(Set<String> ids) => setStoredUrlTeardownsImpl(ids);
 }

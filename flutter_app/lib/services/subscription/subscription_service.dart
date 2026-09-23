@@ -23,6 +23,9 @@ class SubscriptionService extends ChangeNotifier {
   final Set<String> _viewedAppIdsToday = {};
   static const int dailyTeardownsLimit = 3;
 
+  final Set<String> _urlTeardownAppIds = {};
+  static const int freeUrlTeardownLimit = 1;
+
   SubscriptionService({
     SupabaseClient? supabaseClient,
     AuthService? authService,
@@ -36,6 +39,8 @@ class SubscriptionService extends ChangeNotifier {
         _tier = UserTier.agency;
       }
     }
+    final savedUrlTeardowns = SubscriptionStorage.getStoredUrlTeardowns();
+    _urlTeardownAppIds.addAll(savedUrlTeardowns);
     _initSupabaseSync();
   }
 
@@ -53,6 +58,14 @@ class SubscriptionService extends ChangeNotifier {
   int get remainingFreeTeardowns {
     if (isPro) return 999;
     final remaining = dailyTeardownsLimit - _viewedAppIdsToday.length;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  int get urlTeardownCount => _urlTeardownAppIds.length;
+
+  int get remainingFreeUrlTeardowns {
+    if (isPro) return 999;
+    final remaining = freeUrlTeardownLimit - _urlTeardownAppIds.length;
     return remaining > 0 ? remaining : 0;
   }
 
@@ -158,6 +171,28 @@ class SubscriptionService extends ChangeNotifier {
     }
   }
 
+  bool canPerformUrlTeardown(String identifier) {
+    if (isPro) return true;
+    final key = identifier.trim().toLowerCase();
+    if (_urlTeardownAppIds.contains(key)) return true;
+    return _urlTeardownAppIds.length < freeUrlTeardownLimit;
+  }
+
+  void recordUrlTeardown(String identifier) {
+    final key = identifier.trim().toLowerCase();
+    if (!_urlTeardownAppIds.contains(key)) {
+      _urlTeardownAppIds.add(key);
+      SubscriptionStorage.setStoredUrlTeardowns(_urlTeardownAppIds);
+      notifyListeners();
+    }
+  }
+
+  void resetUrlTeardowns() {
+    _urlTeardownAppIds.clear();
+    SubscriptionStorage.setStoredUrlTeardowns({});
+    notifyListeners();
+  }
+
   bool canGenerateBlueprint() {
     return isPro;
   }
@@ -243,6 +278,8 @@ class SubscriptionService extends ChangeNotifier {
 
   void resetDailyLimits() {
     _viewedAppIdsToday.clear();
+    _urlTeardownAppIds.clear();
+    SubscriptionStorage.setStoredUrlTeardowns({});
     notifyListeners();
   }
 }

@@ -774,6 +774,8 @@ class _AppShellState extends State<AppShell> {
         return AppExplorerView(
           appRepo: widget.appRepo,
           aiService: widget.aiService,
+          subscriptionService: widget.subscriptionService,
+          authService: widget.authService,
           onOpenApp: _openAppDetail,
         );
       case 3:
