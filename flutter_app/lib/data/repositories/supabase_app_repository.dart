@@ -11,6 +11,9 @@ class SupabaseAppRepository implements AppRepository {
   DateTime? _lastFetchTime;
   static const Duration _cacheTtl = Duration(minutes: 5);
 
+  /// In-flight request memoization to prevent duplicate concurrent network queries
+  Future<List<AppItem>>? _inFlightFetch;
+
   SupabaseAppRepository({
     required this.client,
     required this.fallbackRepo,
@@ -20,6 +23,7 @@ class SupabaseAppRepository implements AppRepository {
   void invalidateCache() {
     _cachedApps = null;
     _lastFetchTime = null;
+    _inFlightFetch = null;
   }
 
   @override
@@ -31,10 +35,44 @@ class SupabaseAppRepository implements AppRepository {
       }
     }
 
+    // 2. Return active in-flight request if another caller already started fetching
+    if (!forceRefresh && _inFlightFetch != null) {
+      return _inFlightFetch!;
+    }
+
+    _inFlightFetch = _fetchAndCacheApps();
+    try {
+      final result = await _inFlightFetch!;
+      return result;
+    } finally {
+      _inFlightFetch = null;
+    }
+  }
+
+  Future<List<AppItem>> _fetchAndCacheApps() async {
+    // Strategy A: Query high-performance pre-joined view (zero redundant historical metrics)
+    try {
+      final response = await client
+          .from('app_intelligence_view')
+          .select()
+          .order('id', ascending: true);
+
+      final List<dynamic> data = response as List<dynamic>;
+      if (data.isNotEmpty) {
+        final mapped = data.map((json) => _mapJsonToAppItem(json as Map<String, dynamic>)).toList();
+        _cachedApps = mapped;
+        _lastFetchTime = DateTime.now();
+        return mapped;
+      }
+    } catch (_) {
+      // If the view does not exist yet on Supabase, proceed to Strategy B
+    }
+
+    // Strategy B: Fallback to optimized select on base tables
     try {
       final response = await client
           .from('apps')
-          .select('*, app_analysis(*), app_metrics(*)')
+          .select('*, app_analysis(*), app_metrics(rank, downloads, revenue_estimate, rating, review_count, growth_rate, metric_date)')
           .order('id', ascending: true);
 
       final List<dynamic> data = response as List<dynamic>;
@@ -65,10 +103,24 @@ class SupabaseAppRepository implements AppRepository {
       if (matched.isNotEmpty) return matched.first;
     }
 
+    // Try view first
+    try {
+      final response = await client
+          .from('app_intelligence_view')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
+
+      if (response != null) {
+        return _mapJsonToAppItem(response);
+      }
+    } catch (_) {}
+
+    // Fallback to table
     try {
       final response = await client
           .from('apps')
-          .select('*, app_analysis(*), app_metrics(*)')
+          .select('*, app_analysis(*), app_metrics(rank, downloads, revenue_estimate, rating, review_count, growth_rate, metric_date)')
           .eq('id', id)
           .maybeSingle();
 
@@ -115,11 +167,22 @@ class SupabaseAppRepository implements AppRepository {
   }
 
   AppItem _mapJsonToAppItem(Map<String, dynamic> json) {
-    final analysisList = json['app_analysis'] as List<dynamic>? ?? [];
-    final analysis = analysisList.isNotEmpty ? analysisList.first as Map<String, dynamic> : <String, dynamic>{};
+    // Support flat structure (from app_intelligence_view) and nested structure (from apps table joins)
+    final Map<String, dynamic> analysis;
+    if (json.containsKey('opportunity_score') && json['opportunity_score'] != null) {
+      analysis = json;
+    } else {
+      final analysisList = json['app_analysis'] as List<dynamic>? ?? [];
+      analysis = analysisList.isNotEmpty ? analysisList.first as Map<String, dynamic> : <String, dynamic>{};
+    }
 
-    final metricsList = json['app_metrics'] as List<dynamic>? ?? [];
-    final metrics = metricsList.isNotEmpty ? metricsList.first as Map<String, dynamic> : <String, dynamic>{};
+    final Map<String, dynamic> metrics;
+    if (json.containsKey('downloads') && json['downloads'] != null) {
+      metrics = json;
+    } else {
+      final metricsList = json['app_metrics'] as List<dynamic>? ?? [];
+      metrics = metricsList.isNotEmpty ? metricsList.first as Map<String, dynamic> : <String, dynamic>{};
+    }
 
     final opportunityScore = (analysis['opportunity_score'] as num?)?.toInt() ?? 78;
     final growthSignal = (analysis['growth_signal'] as num?)?.toInt() ?? 80;

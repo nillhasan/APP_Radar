@@ -11,6 +11,9 @@ class SupabaseReportRepository implements ReportRepository {
   DateTime? _lastFetchTime;
   static const Duration _cacheTtl = Duration(minutes: 5);
 
+  /// In-flight request memoization to prevent duplicate concurrent network queries
+  Future<List<ReportItem>>? _inFlightFetch;
+
   SupabaseReportRepository({
     required this.client,
     required this.fallbackRepo,
@@ -20,6 +23,7 @@ class SupabaseReportRepository implements ReportRepository {
   void invalidateCache() {
     _cachedReports = null;
     _lastFetchTime = null;
+    _inFlightFetch = null;
   }
 
   @override
@@ -33,6 +37,27 @@ class SupabaseReportRepository implements ReportRepository {
       }
     }
 
+    if (!forceRefresh && _inFlightFetch != null) {
+      final all = await _inFlightFetch!;
+      if (type == null || type == 'All') {
+        return all;
+      }
+      return all.where((r) => r.type.toLowerCase() == type.toLowerCase()).toList();
+    }
+
+    _inFlightFetch = _fetchAndCacheReports();
+    try {
+      final items = await _inFlightFetch!;
+      if (type == null || type == 'All') {
+        return items;
+      }
+      return items.where((r) => r.type.toLowerCase() == type.toLowerCase()).toList();
+    } finally {
+      _inFlightFetch = null;
+    }
+  }
+
+  Future<List<ReportItem>> _fetchAndCacheReports() async {
     try {
       final response = await client
           .from('reports')
@@ -42,7 +67,7 @@ class SupabaseReportRepository implements ReportRepository {
 
       final List<dynamic> data = response as List<dynamic>;
       if (data.isEmpty) {
-        final fallback = await fallbackRepo.getReports(type: type);
+        final fallback = await fallbackRepo.getReports();
         _cachedReports = fallback;
         _lastFetchTime = DateTime.now();
         return fallback;
@@ -51,12 +76,9 @@ class SupabaseReportRepository implements ReportRepository {
       final items = data.map((json) => _mapJsonToReportItem(json as Map<String, dynamic>)).toList();
       _cachedReports = items;
       _lastFetchTime = DateTime.now();
-      if (type == null || type == 'All') {
-        return items;
-      }
-      return items.where((r) => r.type.toLowerCase() == type.toLowerCase()).toList();
+      return items;
     } catch (e) {
-      final fallback = await fallbackRepo.getReports(type: type);
+      final fallback = await fallbackRepo.getReports();
       _cachedReports = fallback;
       _lastFetchTime = DateTime.now();
       return fallback;

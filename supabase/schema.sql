@@ -132,3 +132,73 @@ create policy "Users can insert own subscription" on user_subscriptions
 create policy "Users can update own subscription" on user_subscriptions
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- ============================================================================
+-- Performance Tuning Indexes & Pre-Joined View
+-- ============================================================================
+
+-- Foreign key & sorting indexes for app_analysis
+CREATE INDEX IF NOT EXISTS idx_app_analysis_app_id ON app_analysis(app_id);
+CREATE INDEX IF NOT EXISTS idx_app_analysis_opp_score ON app_analysis(opportunity_score DESC NULLS LAST);
+
+-- Filtering & sorting indexes for apps
+CREATE INDEX IF NOT EXISTS idx_apps_category ON apps(category);
+CREATE INDEX IF NOT EXISTS idx_apps_platform ON apps(platform);
+CREATE INDEX IF NOT EXISTS idx_apps_rating ON apps(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_apps_review_count ON apps(review_count DESC);
+CREATE INDEX IF NOT EXISTS idx_apps_category_rating ON apps(category, rating DESC);
+
+-- Latest metric & sorting indexes for app_metrics
+CREATE INDEX IF NOT EXISTS idx_app_metrics_app_id_date_desc ON app_metrics(app_id, metric_date DESC);
+CREATE INDEX IF NOT EXISTS idx_app_metrics_downloads ON app_metrics(downloads DESC);
+CREATE INDEX IF NOT EXISTS idx_app_metrics_revenue ON app_metrics(revenue_estimate DESC);
+
+-- Index for reports & user watchlists
+CREATE INDEX IF NOT EXISTS idx_reports_report_date ON reports(report_date DESC);
+CREATE INDEX IF NOT EXISTS idx_user_watchlists_app_id ON user_watchlists(app_id);
+
+-- High-performance pre-joined view for App Intelligence
+CREATE OR REPLACE VIEW app_intelligence_view WITH (security_invoker = true) AS
+SELECT 
+  a.id,
+  a.name,
+  a.developer,
+  a.category,
+  a.platform,
+  a.description,
+  a.app_url,
+  a.icon_url,
+  a.screenshot_urls,
+  a.rating,
+  a.review_count,
+  a.price,
+  an.opportunity_score,
+  an.growth_signal,
+  an.market_signal,
+  an.revenue_signal,
+  an.review_signal,
+  an.ranking_signal,
+  an.target_user,
+  an.core_features,
+  an.monetization,
+  an.user_pain_points,
+  an.market_opportunity,
+  an.build_opportunity,
+  an.mvp_features,
+  an.risks,
+  an.ai_summary,
+  m.rank,
+  m.downloads,
+  m.revenue_estimate,
+  m.growth_rate,
+  m.metric_date
+FROM apps a
+LEFT JOIN app_analysis an ON an.app_id = a.id
+LEFT JOIN LATERAL (
+  SELECT rank, downloads, revenue_estimate, growth_rate, metric_date
+  FROM app_metrics m
+  WHERE m.app_id = a.id
+  ORDER BY m.metric_date DESC
+  LIMIT 1
+) m ON true;
+
+
