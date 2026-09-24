@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/models/build_blueprint.dart';
@@ -30,11 +31,14 @@ class BuildWithAIView extends StatefulWidget {
 
 class _BuildWithAIViewState extends State<BuildWithAIView> {
   AppItem? _selectedApp;
+  String _selectedCategory = 'All Categories';
   bool _isGenerating = false;
   String _generationStep = '';
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
+
     return FutureBuilder<List<AppItem>>(
       future: widget.appRepo.getAllApps(),
       builder: (context, snapshot) {
@@ -42,8 +46,17 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final apps = snapshot.data!;
-        _selectedApp ??= apps.first;
+        final allApps = snapshot.data!;
+        final filteredApps = allApps.where((a) {
+          if (_selectedCategory == 'All Categories' || _selectedCategory == 'All') return true;
+          return a.category.toLowerCase().contains(_selectedCategory.toLowerCase()) ||
+                 _selectedCategory.toLowerCase().contains(a.category.toLowerCase());
+        }).toList();
+
+        final displayApps = filteredApps.isNotEmpty ? filteredApps : allApps;
+        if (_selectedApp == null || !displayApps.any((a) => a.id == _selectedApp!.id)) {
+          _selectedApp = displayApps.first;
+        }
 
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -63,50 +76,195 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '1. Select Opportunity to Target',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '1. Select Opportunity to Target',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${displayApps.length} Opportunities',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<AppItem>(
-                        value: _selectedApp,
-                        isExpanded: true,
-                        items: apps.map((a) {
-                          return DropdownMenuItem(
-                            value: a,
-                            child: Row(
-                              children: [
-                                AppIconWidget(
-                                  iconUrl: a.iconUrl,
-                                  iconEmoji: a.iconEmoji,
-                                  size: 22,
-                                  borderRadius: 5,
-                                  fontSize: 14,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(a.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                                const SizedBox(width: 8),
-                                Text('(${a.category} • Score: ${a.opportunityScore})', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                              ],
+                  const SizedBox(height: 14),
+                  if (isDesktop)
+                    Row(
+                      children: [
+                        // Category Dropdown
+                        Container(
+                          width: 220,
+                          height: 46,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedCategory,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+                              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                              items: AppConstants.categories.map((c) {
+                                return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
+                              }).toList(),
+                              onChanged: _isGenerating
+                                  ? null
+                                  : (cat) {
+                                      if (cat != null) {
+                                        setState(() {
+                                          _selectedCategory = cat;
+                                        });
+                                      }
+                                    },
                             ),
-                          );
-                        }).toList(),
-                        onChanged: _isGenerating
-                            ? null
-                            : (app) {
-                                if (app != null) setState(() => _selectedApp = app);
-                              },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Opportunity App Dropdown
+                        Expanded(
+                          child: Container(
+                            height: 46,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSecondary,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<AppItem>(
+                                value: _selectedApp,
+                                isExpanded: true,
+                                items: displayApps.map((a) {
+                                  return DropdownMenuItem(
+                                    value: a,
+                                    child: Row(
+                                      children: [
+                                        AppIconWidget(
+                                          iconUrl: a.iconUrl,
+                                          iconEmoji: a.iconEmoji,
+                                          size: 22,
+                                          borderRadius: 5,
+                                          fontSize: 14,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Flexible(
+                                          child: Text(
+                                            a.name,
+                                            style: const TextStyle(fontWeight: FontWeight.w700),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text('(${a.category} • Score: ${a.opportunityScore})', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: _isGenerating
+                                    ? null
+                                    : (app) {
+                                        if (app != null) setState(() => _selectedApp = app);
+                                      },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else ...[
+                    // Category Dropdown (Mobile)
+                    Container(
+                      width: double.infinity,
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedCategory,
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+                          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                          items: AppConstants.categories.map((c) {
+                            return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
+                          }).toList(),
+                          onChanged: _isGenerating
+                              ? null
+                              : (cat) {
+                                  if (cat != null) {
+                                    setState(() {
+                                      _selectedCategory = cat;
+                                    });
+                                  }
+                                },
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    // Opportunity App Dropdown (Mobile)
+                    Container(
+                      width: double.infinity,
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<AppItem>(
+                          value: _selectedApp,
+                          isExpanded: true,
+                          items: displayApps.map((a) {
+                            return DropdownMenuItem(
+                              value: a,
+                              child: Row(
+                                children: [
+                                  AppIconWidget(
+                                    iconUrl: a.iconUrl,
+                                    iconEmoji: a.iconEmoji,
+                                    size: 20,
+                                    borderRadius: 4,
+                                    fontSize: 13,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      a.name,
+                                      style: const TextStyle(fontWeight: FontWeight.w700),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text('(${a.opportunityScore})', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: _isGenerating
+                              ? null
+                              : (app) {
+                                  if (app != null) setState(() => _selectedApp = app);
+                                },
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   if (_selectedApp != null) ...[
                     Container(
@@ -122,10 +280,14 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Market Opportunity Signal: ${_selectedApp!.name}',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                              Expanded(
+                                child: Text(
+                                  'Market Opportunity Signal: ${_selectedApp!.name}',
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               ScoreBadge(score: _selectedApp!.opportunityScore, fontSize: 11),
                             ],
                           ),
@@ -189,23 +351,23 @@ class _BuildWithAIViewState extends State<BuildWithAIView> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Blueprint Output Specifications',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
-                  const SizedBox(height: 14),
-                  const Text(
+                  SizedBox(height: 14),
+                  Text(
                     'AppRadar’s AI Product Architect generates a production-ready engineering specification:',
                     style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Wrap(
                     spacing: 16,
                     runSpacing: 10,
-                    children: const [
+                    children: [
                       _ChecklistItem('1. Product Overview & Thesis'),
                       _ChecklistItem('2. Problem Statement & Root Cause'),
                       _ChecklistItem('3. ICP & Target Personas'),

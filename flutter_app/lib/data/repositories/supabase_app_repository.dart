@@ -236,7 +236,7 @@ class SupabaseAppRepository implements AppRepository {
       rankDelta: (metrics['rank_delta'] as num?)?.toInt() ?? _inferRankDelta(name),
       regionalBreakdown: _buildRegionalBreakdown(json['regional_breakdown'], name, category),
       competitorIds: (json['competitor_ids'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
-          const ['app_1', 'app_2', 'app_3'],
+          const [],
       negativeReviews: _buildNegativeReviewMining(
         name,
         category,
@@ -303,13 +303,24 @@ class SupabaseAppRepository implements AppRepository {
 
   String _inferEmojiForCategory(String category, String name) {
     final lower = '$category $name'.toLowerCase();
-    if (lower.contains('note') || lower.contains('voice') || lower.contains('record')) return '🎙️';
-    if (lower.contains('food') || lower.contains('calorie') || lower.contains('diet')) return '🥗';
-    if (lower.contains('pdf') || lower.contains('doc')) return '📄';
-    if (lower.contains('language') || lower.contains('learn') || lower.contains('tutor')) return '🗣️';
-    if (lower.contains('budget') || lower.contains('finance') || lower.contains('money')) return '💳';
-    if (lower.contains('sleep') || lower.contains('health')) return '🌙';
-    if (lower.contains('habit')) return '⚡';
+    if (lower.contains('vpn') || lower.contains('proxy') || lower.contains('shield') || lower.contains('secur')) return '🛡️';
+    if (lower.contains('photo') || lower.contains('camera') || lower.contains('remini') || lower.contains('image') || lower.contains('editor')) return '📸';
+    if (lower.contains('trip') || lower.contains('travel') || lower.contains('hotel') || lower.contains('flight') || lower.contains('map')) return '✈️';
+    if (lower.contains('transcribe') || lower.contains('voice') || lower.contains('record') || lower.contains('note') || lower.contains('audio')) return '🎙️';
+    if (lower.contains('family') || lower.contains('kid') || lower.contains('parent') || lower.contains('child')) return '👨‍👩‍👧';
+    if (lower.contains('game') || lower.contains('chess') || lower.contains('rpg') || lower.contains('puzzle') || lower.contains('quest')) return '🎮';
+    if (lower.contains('food') || lower.contains('calorie') || lower.contains('diet') || lower.contains('meal') || lower.contains('fasting')) return '🥗';
+    if (lower.contains('pdf') || lower.contains('doc') || lower.contains('scanner') || lower.contains('invoice')) return '📄';
+    if (lower.contains('language') || lower.contains('learn') || lower.contains('tutor') || lower.contains('speak') || lower.contains('fluency')) return '🗣️';
+    if (lower.contains('budget') || lower.contains('finance') || lower.contains('money') || lower.contains('crypto') || lower.contains('spend')) return '💳';
+    if (lower.contains('fitness') || lower.contains('workout') || lower.contains('gym') || lower.contains('muscle')) return '💪';
+    if (lower.contains('sleep') || lower.contains('health') || lower.contains('med') || lower.contains('pill')) return '🌙';
+    if (lower.contains('chat') || lower.contains('message') || lower.contains('communicat')) return '💬';
+    if (lower.contains('sound') || lower.contains('music') || lower.contains('decibel') || lower.contains('noise')) return '🎵';
+    if (lower.contains('tool') || lower.contains('utilit') || lower.contains('meter')) return '🛠️';
+    if (lower.contains('video') || lower.contains('stream') || lower.contains('movie') || lower.contains('caption')) return '🎬';
+    if (lower.contains('habit') || lower.contains('routine')) return '⚡';
+    if (lower.contains('ai') || lower.contains('bot') || lower.contains('gpt')) return '🤖';
     return '📱';
   }
 

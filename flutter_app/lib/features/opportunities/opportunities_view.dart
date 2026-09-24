@@ -124,8 +124,8 @@ class _OpportunitiesViewState extends State<OpportunitiesView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Column(
-                  children: const [
+                child: const Column(
+                  children: [
                     Icon(Icons.search_off, size: 48, color: AppColors.textMuted),
                     SizedBox(height: 12),
                     Text(

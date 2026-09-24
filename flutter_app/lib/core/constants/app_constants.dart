@@ -18,6 +18,7 @@ class AppConstants {
     'Lifestyle',
     'Entertainment',
     'Medical',
+    'Games',
   ];
 
   static const List<String> platforms = [

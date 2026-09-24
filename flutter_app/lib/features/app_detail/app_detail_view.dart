@@ -420,11 +420,11 @@ class _AppDetailViewState extends State<AppDetailView> {
                                           ),
                                         );
                                       },
-                                      errorBuilder: (ctx, err, stack) => Padding(
-                                        padding: const EdgeInsets.all(40),
+                                      errorBuilder: (ctx, err, stack) => const Padding(
+                                        padding: EdgeInsets.all(40),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          children: const [
+                                          children: [
                                             Icon(Icons.broken_image, size: 48, color: AppColors.textMuted),
                                             SizedBox(height: 12),
                                             Text('Failed to load screenshot image', style: TextStyle(color: AppColors.textMuted)),
@@ -689,8 +689,8 @@ class _AppDetailViewState extends State<AppDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.auto_awesome, size: 18, color: AppColors.primary),
               SizedBox(width: 8),
               Text(
@@ -821,8 +821,8 @@ class _AppDetailViewState extends State<AppDetailView> {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.info_outline, size: 16, color: AppColors.primary),
                 SizedBox(width: 8),
                 Expanded(
@@ -902,8 +902,8 @@ class _AppDetailViewState extends State<AppDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.rocket_launch, color: Colors.amber, size: 22),
               SizedBox(width: 10),
               Text(

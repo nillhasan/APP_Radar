@@ -59,11 +59,11 @@ class _DailyReportPreviewViewState extends State<DailyReportPreviewView> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
+                    children: [
                       Icon(Icons.public, color: AppColors.primary, size: 20),
                       SizedBox(width: 8),
                       Text(
@@ -72,16 +72,16 @@ class _DailyReportPreviewViewState extends State<DailyReportPreviewView> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12),
+                  Text(
                     'Over the past 24 hours, our algorithms ingested telemetry from 128 mobile apps across US, UK, and Canadian app stores. Key signal: surging dissatisfaction with meeting bots and bloated subscriptions is opening an immediate window for privacy-first, offline-capable mobile utilities.',
                     style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Wrap(
                     spacing: 12,
                     runSpacing: 8,
-                    children: const [
+                    children: [
                       _Badge('Top Category: AI & Productivity (+120%)', AppColors.primaryLight, AppColors.primary),
                       _Badge('High-Conviction Plays: 5 Apps', AppColors.successLight, AppColors.success),
                       _Badge('Avg Sub Price: \$12.50/mo', AppColors.surfaceSecondary, AppColors.textSecondary),

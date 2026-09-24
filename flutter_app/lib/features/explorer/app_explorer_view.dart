@@ -217,6 +217,9 @@ class _AppExplorerViewState extends State<AppExplorerView> {
     } else if (nameLower.contains('photo') || nameLower.contains('video') || nameLower.contains('cam') || nameLower.contains('edit')) {
       category = 'Photo & Video';
       iconEmoji = '📸';
+    } else if (nameLower.contains('game') || nameLower.contains('play') || nameLower.contains('chess') || nameLower.contains('rpg') || nameLower.contains('quest') || nameLower.contains('puzzle') || nameLower.contains('arcade')) {
+      category = 'Games';
+      iconEmoji = '🎮';
     } else {
       category = 'Productivity';
       iconEmoji = '⚡';
@@ -286,7 +289,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
         },
         goldenOpportunitySummary: 'Capture churned users of $name by guaranteeing an offline-first experience with transparent pricing and zero dark-pattern upsells.',
         sampleReviews: [
-          StoreReview(
+          const StoreReview(
             author: 'Verified Store Reviewer',
             rating: 1,
             date: '3 days ago',
@@ -294,7 +297,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
             comment: 'Forced subscription popups on every launch. I just need a simple utility without paying \$15/month!',
             builderOpportunity: 'Offer a generous free tier and low-cost indie pricing to attract frustrated users.',
           ),
-          StoreReview(
+          const StoreReview(
             author: 'Power User (Store Review)',
             rating: 2,
             date: '6 days ago',
@@ -622,10 +625,10 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                 child: const Icon(Icons.bolt, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Instant Store URL Teardown & Live Gap Analysis',
                       style: TextStyle(

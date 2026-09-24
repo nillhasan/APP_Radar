@@ -97,6 +97,11 @@ class _CompetitorsViewState extends State<CompetitorsView> {
           uniqueApps.add(a);
         }
       }
+      for (final a in MockData.apps) {
+        if (seenIds.add(a.id)) {
+          uniqueApps.add(a);
+        }
+      }
 
       setState(() {
         _allApps = uniqueApps.isNotEmpty ? uniqueApps : MockData.apps;
@@ -156,37 +161,43 @@ class _CompetitorsViewState extends State<CompetitorsView> {
       ),
     );
 
-    // 2. Discover direct rivals
+    // 2. Discover direct rivals strictly in the SAME category
     final List<AppItem> rivals = [];
+    final focusCat = focusApp.category.trim().toLowerCase();
 
-    // Check explicit competitorIds
+    // Pool of apps belonging strictly to the same category
+    final sameCategoryApps = _allApps.where((a) {
+      if (a.id == focusApp.id) return false;
+      final c = a.category.trim().toLowerCase();
+      return c == focusCat || c.contains(focusCat) || focusCat.contains(c);
+    }).toList();
+
+    // Priority 1: Check explicit competitorIds ONLY if they match the focus category
     for (final id in focusApp.competitorIds) {
-      final match = _allApps.where((a) => a.id == id && a.id != focusApp.id).toList();
+      final match = sameCategoryApps.where((a) => a.id == id).toList();
       if (match.isNotEmpty && !rivals.any((r) => r.id == match.first.id)) {
         rivals.add(match.first);
       }
     }
 
-    // Category matches
-    if (rivals.length < 3) {
-      final categoryMatches = _allApps.where((a) {
-        return a.id != focusApp.id &&
-            !rivals.any((r) => r.id == a.id) &&
-            a.category.toLowerCase() == focusApp.category.toLowerCase();
-      }).toList();
-
-      categoryMatches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
-      for (final app in categoryMatches) {
-        if (rivals.length >= 4) break;
+    // Priority 2: Fill remaining rivals from the same category (sorted by opportunity score)
+    sameCategoryApps.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
+    for (final app in sameCategoryApps) {
+      if (rivals.length >= 3) break;
+      if (!rivals.any((r) => r.id == app.id)) {
         rivals.add(app);
       }
     }
 
-    // If still under 3 rivals, add other tracked apps
+    // Priority 3: If still under 3, search MockData for same-category apps
     if (rivals.length < 3) {
-      final otherApps = _allApps.where((a) => a.id != focusApp.id && !rivals.any((r) => r.id == a.id)).toList();
-      otherApps.sort((a, b) => b.revenueEstimate.compareTo(a.revenueEstimate));
-      for (final app in otherApps) {
+      final mockCatMatches = MockData.apps.where((a) {
+        if (a.id == focusApp.id || rivals.any((r) => r.id == a.id)) return false;
+        final c = a.category.trim().toLowerCase();
+        return c == focusCat || c.contains(focusCat) || focusCat.contains(c);
+      }).toList();
+      mockCatMatches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
+      for (final app in mockCatMatches) {
         if (rivals.length >= 3) break;
         rivals.add(app);
       }
@@ -426,7 +437,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: AppConstants.categories.take(7).map((cat) {
+                        children: AppConstants.categories.map((cat) {
                           final isSelected = dialogCategory == cat;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
@@ -650,6 +661,46 @@ class _CompetitorsViewState extends State<CompetitorsView> {
               ),
               const SizedBox(width: 12),
 
+              // Category Dropdown
+              Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedCategory,
+                    icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                    items: AppConstants.categories.map((c) {
+                      return DropdownMenuItem(value: c, child: Text(c));
+                    }).toList(),
+                    onChanged: (cat) {
+                      if (cat != null) {
+                        setState(() {
+                          _selectedCategory = cat;
+                          if (cat != 'All Categories') {
+                            final catLower = cat.trim().toLowerCase();
+                            final matches = _allApps.where((a) {
+                              final aLower = a.category.trim().toLowerCase();
+                              return aLower == catLower || aLower.contains(catLower) || catLower.contains(aLower);
+                            }).toList();
+                            if (matches.isNotEmpty) {
+                              matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
+                              _selectedApp = matches.first;
+                            }
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
               // "Browse All Apps" Button
               ElevatedButton.icon(
                 onPressed: _openAppPickerDialog,
@@ -683,11 +734,14 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                       setState(() {
                         _selectedCategory = cat;
                         if (cat != 'All Categories') {
-                          final match = _allApps.where(
-                            (a) => a.category.toLowerCase() == cat.toLowerCase(),
-                          ).toList();
-                          if (match.isNotEmpty) {
-                            _selectedApp = match.first;
+                          final catLower = cat.trim().toLowerCase();
+                          final matches = _allApps.where((a) {
+                            final aLower = a.category.trim().toLowerCase();
+                            return aLower == catLower || aLower.contains(catLower) || catLower.contains(aLower);
+                          }).toList();
+                          if (matches.isNotEmpty) {
+                            matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
+                            _selectedApp = matches.first;
                           }
                         }
                       });

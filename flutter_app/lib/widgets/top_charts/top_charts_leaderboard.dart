@@ -48,6 +48,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
     'Lifestyle',
     'Entertainment',
     'Medical',
+    'Games',
   ];
 
   List<String> get _categories {

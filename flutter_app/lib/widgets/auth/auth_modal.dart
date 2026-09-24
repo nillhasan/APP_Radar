@@ -175,10 +175,10 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                         child: const Icon(Icons.radar, color: Colors.white, size: 22),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'AppRadar',
                               style: TextStyle(
@@ -297,9 +297,9 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                 side: const BorderSide(color: AppColors.border),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.g_mobiledata, size: 24, color: AppColors.textPrimary),
                   SizedBox(width: 8),
                   Text(
@@ -312,8 +312,8 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
             const SizedBox(height: 16),
 
             // Divider
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Expanded(child: Divider(color: AppColors.border)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),

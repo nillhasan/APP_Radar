@@ -239,11 +239,11 @@ class _AppShellState extends State<AppShell> {
             child: const Icon(Icons.radar, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 10),
-          Flexible(
+          const Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text(
                   'AppRadar',
                   style: TextStyle(
@@ -277,8 +277,8 @@ class _AppShellState extends State<AppShell> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.public, size: 14, color: AppColors.primary),
                 SizedBox(width: 6),
                 Text(
@@ -465,13 +465,13 @@ class _AppShellState extends State<AppShell> {
             ],
           ),
         ),
-        PopupMenuItem<String>(
+        const PopupMenuItem<String>(
           value: 'sync_subscription',
           child: Row(
             children: [
-              const Icon(Icons.sync, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              const Text('Restore / Sync Plan', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              Icon(Icons.sync, size: 18, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Restore / Sync Plan', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -797,7 +797,13 @@ class _AppShellState extends State<AppShell> {
               )
             : const SizedBox.shrink(),
         _visitedTabs.contains(4)
-            ? MarketTrendsView(trendRepo: widget.trendRepo)
+            ? MarketTrendsView(
+                trendRepo: widget.trendRepo,
+                appRepo: widget.appRepo,
+                onOpenApp: _openAppDetail,
+                onBuildWithAI: (app) => _navigateToTab(8),
+                onExploreCategory: (category) => _navigateToTab(2),
+              )
             : const SizedBox.shrink(),
         _visitedTabs.contains(5)
             ? WatchlistView(

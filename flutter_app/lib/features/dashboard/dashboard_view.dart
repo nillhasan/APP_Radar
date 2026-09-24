@@ -170,10 +170,10 @@ class _DashboardViewState extends State<DashboardView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Top Opportunities Today',
                       style: TextStyle(
@@ -322,9 +322,9 @@ class _DashboardViewState extends State<DashboardView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Expanded(
                     child: Text(
                       'Market Category Trends',
@@ -407,8 +407,8 @@ class _DashboardViewState extends State<DashboardView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.auto_awesome, color: Colors.amber, size: 20),
                   SizedBox(width: 8),
                   Expanded(
@@ -437,9 +437,9 @@ class _DashboardViewState extends State<DashboardView> {
                   foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Text('Open Build With AI', style: TextStyle(fontWeight: FontWeight.w700)),
                     SizedBox(width: 6),
                     Icon(Icons.arrow_forward, size: 14),
