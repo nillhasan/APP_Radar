@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/theme_service.dart';
 import '../data/models/app_item.dart';
 import '../data/models/build_blueprint.dart';
 import '../features/dashboard/dashboard_view.dart';
@@ -25,6 +26,8 @@ import '../services/subscription/subscription_service.dart';
 import 'auth/auth_modal.dart';
 import 'pricing/pricing_modal.dart';
 import 'pwa/pwa_install_modal.dart';
+import '../features/landing/landing_page_view.dart';
+import '../features/auth/auth_page_view.dart';
 
 class AppShell extends StatefulWidget {
   final AppRepository appRepo;
@@ -35,6 +38,7 @@ class AppShell extends StatefulWidget {
   final AIService aiService;
   final AuthService authService;
   final SubscriptionService subscriptionService;
+  final bool initialShowLandingPage;
 
   const AppShell({
     super.key,
@@ -46,6 +50,7 @@ class AppShell extends StatefulWidget {
     required this.aiService,
     required this.authService,
     required this.subscriptionService,
+    this.initialShowLandingPage = false,
   });
 
   @override
@@ -53,6 +58,9 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  late bool _showLandingPage = widget.initialShowLandingPage;
+  bool _showAuthPage = false;
+  bool _authPageInitialIsSignUp = true;
   int _selectedIndex = 0;
   AppItem? _selectedAppForDetail;
   BuildBlueprint? _activeBlueprint;
@@ -128,8 +136,16 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    final uri = Uri.base;
+    if (uri.fragment.contains('access_token') ||
+        uri.fragment.contains('refresh_token') ||
+        uri.queryParameters.containsKey('code')) {
+      _showLandingPage = false;
+      _showAuthPage = false;
+    }
     widget.authService.addListener(_onServiceStateChanged);
     widget.subscriptionService.addListener(_onServiceStateChanged);
+    ThemeService.instance.addListener(_onServiceStateChanged);
     _loadAllApps();
     _checkPaymentReturnUrl();
   }
@@ -180,37 +196,166 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     widget.authService.removeListener(_onServiceStateChanged);
     widget.subscriptionService.removeListener(_onServiceStateChanged);
+    ThemeService.instance.removeListener(_onServiceStateChanged);
     super.dispose();
   }
 
   void _onServiceStateChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (widget.authService.isAuthenticated) {
+            if (_showAuthPage) {
+              _showAuthPage = false;
+              _showLandingPage = false;
+            }
+            final uri = Uri.base;
+            if (uri.fragment.contains('access_token') ||
+                uri.fragment.contains('refresh_token') ||
+                uri.queryParameters.containsKey('code')) {
+              _showLandingPage = false;
+              _showAuthPage = false;
+            }
+          }
+          setState(() {});
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_showLandingPage) {
+      return LandingPageView(
+        appRepo: widget.appRepo,
+        oppRepo: widget.oppRepo,
+        authService: widget.authService,
+        subscriptionService: widget.subscriptionService,
+        onLaunchConsole: () {
+          if (!widget.authService.isAuthenticated) {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = true;
+              _authPageInitialIsSignUp = true;
+            });
+          } else {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = false;
+            });
+          }
+        },
+        onGetStarted: () {
+          if (widget.authService.isAuthenticated) {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = false;
+            });
+          } else {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = true;
+              _authPageInitialIsSignUp = true;
+            });
+          }
+        },
+        onOpenAppDetail: (app) {
+          if (!widget.authService.isAuthenticated) {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = true;
+              _authPageInitialIsSignUp = true;
+            });
+          } else {
+            _openAppDetail(app);
+          }
+        },
+        onNavigateToConsoleTab: (idx) {
+          if (!widget.authService.isAuthenticated) {
+            setState(() {
+              _selectedIndex = idx;
+              _visitedTabs.add(idx);
+              _showLandingPage = false;
+              _showAuthPage = true;
+              _authPageInitialIsSignUp = true;
+            });
+          } else {
+            setState(() {
+              _selectedIndex = idx;
+              _visitedTabs.add(idx);
+              _showLandingPage = false;
+              _showAuthPage = false;
+            });
+          }
+        },
+        onOpenAuthModal: () {
+          if (widget.authService.isAuthenticated) {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = false;
+            });
+          } else {
+            setState(() {
+              _showLandingPage = false;
+              _showAuthPage = true;
+              _authPageInitialIsSignUp = false;
+            });
+          }
+        },
+        onOpenPricingModal: () => PricingModal.show(
+          context,
+          subscriptionService: widget.subscriptionService,
+          authService: widget.authService,
+          onRequiresAuth: () => setState(() {
+            _showLandingPage = false;
+            _showAuthPage = true;
+            _authPageInitialIsSignUp = true;
+          }),
+        ),
+      );
+    }
+
+    if (_showAuthPage) {
+      return AuthPageView(
+        authService: widget.authService,
+        initialIsSignUp: _authPageInitialIsSignUp,
+        onAuthSuccess: () {
+          setState(() {
+            _showAuthPage = false;
+            _showLandingPage = false;
+          });
+        },
+        onBackToFrontPage: () {
+          setState(() {
+            _showAuthPage = false;
+            _showLandingPage = true;
+          });
+        },
+      );
+    }
+
     final isDesktop = MediaQuery.of(context).size.width >= 960;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.currentBackground,
       appBar: _buildAppBar(isDesktop),
-      drawer: isDesktop ? null : Drawer(child: Material(color: AppColors.surface, child: _buildNavContent(isDrawer: true))),
+      drawer: isDesktop ? null : Drawer(child: Material(color: AppColors.currentSurface, child: _buildNavContent(isDrawer: true))),
       body: Row(
         children: [
           if (isDesktop)
             Container(
               width: 240,
-              decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: AppColors.border, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: AppColors.currentBorder, width: 1)),
               ),
               child: Material(
-                color: AppColors.surface,
+                color: AppColors.currentSurface,
                 child: _buildNavContent(),
               ),
             ),
           Expanded(
             child: Container(
-              color: AppColors.background,
+              color: AppColors.currentBackground,
               child: _buildCurrentPage(),
             ),
           ),
@@ -239,7 +384,7 @@ class _AppShellState extends State<AppShell> {
             child: const Icon(Icons.radar, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 10),
-          const Flexible(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -250,7 +395,7 @@ class _AppShellState extends State<AppShell> {
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
                     letterSpacing: -0.5,
-                    color: AppColors.textPrimary,
+                    color: AppColors.currentTextPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -259,7 +404,7 @@ class _AppShellState extends State<AppShell> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textMuted,
+                    color: AppColors.currentTextMuted,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -270,31 +415,53 @@ class _AppShellState extends State<AppShell> {
       ),
       actions: [
         if (isDesktop) ...[
+          TextButton.icon(
+            onPressed: () => setState(() => _showLandingPage = true),
+            icon: const Icon(Icons.home_outlined, size: 15, color: AppColors.primary),
+            label: const Text('Front Page', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.currentPrimaryLight,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.surfaceSecondary,
+              color: AppColors.currentSurfaceSecondary,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.currentBorder),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.public, size: 14, color: AppColors.primary),
-                SizedBox(width: 6),
+                const Icon(Icons.public, size: 14, color: AppColors.primary),
+                const SizedBox(width: 6),
                 Text(
                   'USA • Sep 19, 2026',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.currentTextSecondary),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 16),
         ],
+        // Theme Mode Toggle Button (Desktop shows in header; Mobile has dedicated toggle in Drawer & Settings)
+        if (isDesktop)
+          IconButton(
+            tooltip: ThemeService.instance.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            icon: Icon(
+              ThemeService.instance.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: ThemeService.instance.isDark ? const Color(0xFFFBBF24) : AppColors.currentTextSecondary,
+              size: 20,
+            ),
+            onPressed: () => ThemeService.instance.toggleTheme(),
+          ),
         IconButton(
           icon: Stack(
             clipBehavior: Clip.none,
             children: [
-              const Icon(Icons.notifications_outlined, color: AppColors.textSecondary),
+              Icon(Icons.notifications_outlined, color: AppColors.currentTextSecondary),
               Positioned(
                 right: -2,
                 top: -2,
@@ -318,7 +485,7 @@ class _AppShellState extends State<AppShell> {
         if (isDesktop)
           IconButton(
             tooltip: 'Install AppRadar PWA',
-            icon: const Icon(Icons.install_desktop_rounded, color: AppColors.textSecondary, size: 20),
+            icon: Icon(Icons.install_desktop_rounded, color: AppColors.currentTextSecondary, size: 20),
             onPressed: () => PwaInstallModal.show(context),
           ),
         const SizedBox(width: 8),
@@ -338,7 +505,7 @@ class _AppShellState extends State<AppShell> {
             label: const Text('Upgrade Pro', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.aiPurple)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.aiPurple.withValues(alpha: 0.4)),
-              backgroundColor: AppColors.aiPurpleLight,
+              backgroundColor: ThemeService.instance.isDark ? const Color(0xFF2E1065) : AppColors.aiPurpleLight,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
@@ -411,6 +578,10 @@ class _AppShellState extends State<AppShell> {
         } else if (val == 'signout') {
           await auth.signOut();
           if (mounted) {
+            setState(() {
+              _showLandingPage = true;
+              _showAuthPage = false;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Successfully signed out')),
             );
@@ -511,12 +682,12 @@ class _AppShellState extends State<AppShell> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.currentSurface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: widget.subscriptionService.isPro
                 ? AppColors.aiPurple.withValues(alpha: 0.35)
-                : AppColors.border,
+                : AppColors.currentBorder,
           ),
           boxShadow: [
             BoxShadow(
@@ -546,10 +717,10 @@ class _AppShellState extends State<AppShell> {
               children: [
                 Text(
                   auth.userDisplayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: AppColors.currentTextPrimary,
                     height: 1.1,
                   ),
                 ),
@@ -559,14 +730,14 @@ class _AppShellState extends State<AppShell> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: widget.subscriptionService.isPro ? FontWeight.w600 : FontWeight.w400,
-                    color: widget.subscriptionService.isPro ? AppColors.aiPurple : AppColors.textMuted,
+                    color: widget.subscriptionService.isPro ? AppColors.aiPurple : AppColors.currentTextMuted,
                     height: 1.1,
                   ),
                 ),
               ],
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
+            Icon(Icons.chevron_right, size: 16, color: AppColors.currentTextMuted),
           ],
         ),
       ),
@@ -585,7 +756,7 @@ class _AppShellState extends State<AppShell> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.currentPrimaryLight,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -599,12 +770,45 @@ class _AppShellState extends State<AppShell> {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Find. Analyze. Build.',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
+                  color: AppColors.currentTextMuted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () {
+                  if (isDrawer) Navigator.pop(context);
+                  setState(() => _showLandingPage = true);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: AppColors.currentPrimaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.public, size: 16, color: AppColors.primary),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Front Page',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.primary),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -625,19 +829,19 @@ class _AppShellState extends State<AppShell> {
                 child: ListTile(
                   dense: true,
                   selected: isSelected,
-                  selectedTileColor: AppColors.primaryLight,
+                  selectedTileColor: AppColors.currentPrimaryLight,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   leading: Icon(
                     _navIcons[index],
                     size: 20,
-                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    color: isSelected ? AppColors.primary : AppColors.currentTextSecondary,
                   ),
                   title: Text(
                     _navTitles[index],
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      color: isSelected ? AppColors.primary : AppColors.currentTextPrimary,
                     ),
                   ),
                   onTap: () {
@@ -655,8 +859,30 @@ class _AppShellState extends State<AppShell> {
             child: ListTile(
               dense: true,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              leading: Icon(
+                ThemeService.instance.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                size: 20,
+                color: ThemeService.instance.isDark ? const Color(0xFFFBBF24) : AppColors.primary,
+              ),
+              title: Text(
+                ThemeService.instance.isDark ? 'Light Mode' : 'Dark Mode',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.currentTextPrimary),
+              ),
+              trailing: Switch(
+                value: ThemeService.instance.isDark,
+                onChanged: (_) => ThemeService.instance.toggleTheme(),
+                activeThumbColor: AppColors.primary,
+              ),
+              onTap: () => ThemeService.instance.toggleTheme(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            child: ListTile(
+              dense: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               leading: const Icon(Icons.install_mobile_rounded, size: 20, color: AppColors.primary),
-              title: const Text('Install App (PWA)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              title: Text('Install App (PWA)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.currentTextPrimary)),
               onTap: () {
                 Navigator.pop(context);
                 PwaInstallModal.show(context);
@@ -683,7 +909,9 @@ class _AppShellState extends State<AppShell> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: widget.subscriptionService.isPro ? AppColors.primaryLight : AppColors.aiPurpleLight,
+                color: widget.subscriptionService.isPro
+                    ? AppColors.currentPrimaryLight
+                    : (ThemeService.instance.isDark ? const Color(0xFF2E1065) : AppColors.aiPurpleLight),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: widget.subscriptionService.isPro
@@ -715,7 +943,7 @@ class _AppShellState extends State<AppShell> {
                           widget.subscriptionService.isPro
                               ? 'All features unlocked'
                               : '${widget.subscriptionService.remainingFreeTeardowns}/3 free teardowns left',
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 11, color: AppColors.currentTextSecondary),
                         ),
                       ],
                     ),

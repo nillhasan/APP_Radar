@@ -15,12 +15,15 @@ class AuthService extends ChangeNotifier {
   String? _mockEmail;
   String? _mockDisplayName;
 
-  @visibleForTesting
-  void setMockUser({required String email, String? fullName}) {
+  void signInDemoUser({required String email, String? fullName}) {
     _mockEmail = email;
     _mockDisplayName = fullName ?? email.split('@').first;
     notifyListeners();
   }
+
+  @visibleForTesting
+  void setMockUser({required String email, String? fullName}) =>
+      signInDemoUser(email: email, fullName: fullName);
 
   @visibleForTesting
   void clearMockUser() {
@@ -30,6 +33,8 @@ class AuthService extends ChangeNotifier {
   }
 
   bool get isAuthenticated => _mockEmail != null || currentUser != null;
+
+  bool get isSupabaseConfigured => _client != null;
 
   String get userEmail => _mockEmail ?? currentUser?.email ?? '';
 
@@ -63,9 +68,11 @@ class AuthService extends ChangeNotifier {
     required String password,
   }) async {
     if (_client == null) throw Exception('Supabase client not initialized');
+    final redirectUrl = kIsWeb ? '${Uri.base.origin}/' : 'io.supabase.appradar://login-callback/';
     final response = await _client.auth.signUp(
       email: email.trim(),
       password: password,
+      emailRedirectTo: redirectUrl,
     );
     notifyListeners();
     return response;
@@ -84,6 +91,28 @@ class AuthService extends ChangeNotifier {
     return response;
   }
 
+  Future<void> resendVerificationEmail({required String email}) async {
+    if (_client == null) throw Exception('Supabase client not initialized');
+    await _client.auth.resend(
+      type: OtpType.signup,
+      email: email.trim(),
+    );
+  }
+
+  Future<AuthResponse> verifyOTP({
+    required String email,
+    required String token,
+  }) async {
+    if (_client == null) throw Exception('Supabase client not initialized');
+    final response = await _client.auth.verifyOTP(
+      type: OtpType.signup,
+      token: token.trim(),
+      email: email.trim(),
+    );
+    notifyListeners();
+    return response;
+  }
+
   Future<bool> signInWithGoogle() async {
     if (_client == null) throw Exception('Supabase client not initialized');
     final redirectUrl = kIsWeb ? '${Uri.base.origin}/' : 'io.supabase.appradar://login-callback/';
@@ -94,8 +123,11 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    if (_client == null) return;
-    await _client.auth.signOut();
+    clearMockUser();
+    if (_client != null) {
+      await _client.auth.signOut();
+    }
     notifyListeners();
   }
 }
+

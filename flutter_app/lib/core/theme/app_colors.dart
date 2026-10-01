@@ -29,6 +29,31 @@ class AppColors {
   static const Color textMuted = Color(0xFF94A3B8); // Slate 400
   static const Color textInverse = Color(0xFFFFFFFF);
 
+  // Dark Mode Neutral Tokens
+  static const Color darkBackground = Color(0xFF0B0F19); // Ultra deep charcoal-slate
+  static const Color darkSurface = Color(0xFF111827); // Dark card/panel surface
+  static const Color darkSurfaceSecondary = Color(0xFF1E293B); // Elevated surface (Slate 800)
+  static const Color darkSurfaceHover = Color(0xFF1F2937);
+  static const Color darkBorder = Color(0xFF1E293B); // Slate 800
+  static const Color darkBorderLight = Color(0xFF334155); // Slate 700
+  static const Color darkTextPrimary = Color(0xFFF8FAFC); // Slate 50
+  static const Color darkTextSecondary = Color(0xFF94A3B8); // Slate 400
+  static const Color darkTextMuted = Color(0xFF64748B); // Slate 500
+  static const Color darkPrimaryLight = Color(0xFF1E293B);
+
+  // Active theme state (updated by ThemeService)
+  static bool isDark = false;
+
+  // Dynamic getters for responsive components
+  static Color get currentBackground => isDark ? darkBackground : background;
+  static Color get currentSurface => isDark ? darkSurface : surface;
+  static Color get currentSurfaceSecondary => isDark ? darkSurfaceSecondary : surfaceSecondary;
+  static Color get currentBorder => isDark ? darkBorder : border;
+  static Color get currentTextPrimary => isDark ? darkTextPrimary : textPrimary;
+  static Color get currentTextSecondary => isDark ? darkTextSecondary : textSecondary;
+  static Color get currentTextMuted => isDark ? darkTextMuted : textMuted;
+  static Color get currentPrimaryLight => isDark ? darkPrimaryLight : primaryLight;
+
   // Semantic Status
   static const Color success = Color(0xFF10B981); // Emerald 500
   static const Color successLight = Color(0xFFECFDF5);

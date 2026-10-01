@@ -120,38 +120,26 @@ class SubscriptionService extends ChangeNotifier {
             _tier = UserTier.agency;
             SubscriptionStorage.setStoredTier('agency');
           } else {
-            final local = SubscriptionStorage.getStoredTier();
-            if (local == 'pro') {
-              _tier = UserTier.pro;
-            } else if (local == 'agency') {
-              _tier = UserTier.agency;
-            } else {
-              _tier = UserTier.free;
-            }
+            _tier = UserTier.free;
+            SubscriptionStorage.setStoredTier('free');
           }
         } else {
-          final local = SubscriptionStorage.getStoredTier();
-          if (local == 'pro') {
-            _tier = UserTier.pro;
-          } else if (local == 'agency') {
-            _tier = UserTier.agency;
-          } else {
-            _tier = UserTier.free;
-          }
+          _tier = UserTier.free;
+          SubscriptionStorage.setStoredTier('free');
         }
         notifyListeners();
       } else {
-        final local = SubscriptionStorage.getStoredTier();
-        if (local == 'pro') {
-          _tier = UserTier.pro;
-          notifyListeners();
-        }
-        // Create initial free record if not yet created
+        // Create initial free record compliant with RLS policy
         await client.from('user_subscriptions').insert({
           'user_id': user.id,
-          'tier': local ?? 'free',
+          'tier': 'free',
           'status': 'active',
-        }).catchError((_) {});
+        }).catchError((err) {
+          debugPrint('Note: default subscription init: $err');
+        });
+        _tier = UserTier.free;
+        SubscriptionStorage.setStoredTier('free');
+        notifyListeners();
       }
     } catch (e) {
       debugPrint('Error syncing subscription with Supabase: $e');

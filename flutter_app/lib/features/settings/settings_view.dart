@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_service.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/pwa/pwa_install_modal.dart';
 
@@ -18,6 +19,22 @@ class _SettingsViewState extends State<SettingsView> {
   final String _reportScheduleTime = '08:00 AM UTC';
 
   @override
+  void initState() {
+    super.initState();
+    ThemeService.instance.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    ThemeService.instance.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(24),
@@ -26,6 +43,58 @@ class _SettingsViewState extends State<SettingsView> {
           title: 'Platform Settings & Configurations',
           subtitle: 'Manage telemetry feeds, AI model providers, delivery schedules, and API access.',
         ),
+
+        // Appearance & Theme Card
+        _buildSettingsCard(
+          title: 'Appearance & Theme',
+          icon: Icons.palette_outlined,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.currentPrimaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  ThemeService.instance.isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                  color: ThemeService.instance.isDark ? const Color(0xFFFBBF24) : AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              title: Text(
+                'Interface Theme Mode',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.currentTextPrimary),
+              ),
+              subtitle: Text(
+                ThemeService.instance.isDark
+                    ? 'Dark Mode active. Deep charcoal palette optimized for low light & OLED.'
+                    : 'Light Mode active. Clean, high-clarity interface for daylight operations.',
+                style: TextStyle(fontSize: 12, color: AppColors.currentTextMuted),
+              ),
+              trailing: SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    icon: Icon(Icons.light_mode, size: 16),
+                    label: Text('Light'),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    icon: Icon(Icons.dark_mode, size: 16),
+                    label: Text('Dark'),
+                  ),
+                ],
+                selected: {ThemeService.instance.themeMode},
+                onSelectionChanged: (Set<ThemeMode> newSelection) {
+                  ThemeService.instance.setThemeMode(newSelection.first);
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
 
         // Profile Card
         _buildSettingsCard(
@@ -38,8 +107,8 @@ class _SettingsViewState extends State<SettingsView> {
                 backgroundColor: AppColors.primaryLight,
                 child: Text('AR', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
-              title: const Text('Admin Workspace (Founder Tier)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              subtitle: const Text('admin@appradar.ai • Active Pro License', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+              title: Text('Admin Workspace (Founder Tier)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.currentTextPrimary)),
+              subtitle: Text('admin@appradar.ai • Active Pro License', style: TextStyle(fontSize: 12, color: AppColors.currentTextMuted)),
               trailing: OutlinedButton(onPressed: () {}, child: const Text('Manage')),
             ),
           ],
@@ -51,17 +120,17 @@ class _SettingsViewState extends State<SettingsView> {
           title: 'AI & Inference Engine',
           icon: Icons.auto_awesome,
           children: [
-            const Text(
+            Text(
               'Select primary language model used for opportunity score computation, feature teardowns, and blueprint synthesis.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppColors.currentTextSecondary),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: AppColors.surfaceSecondary,
+                color: AppColors.currentSurfaceSecondary,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.currentBorder),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -181,28 +250,30 @@ class _SettingsViewState extends State<SettingsView> {
     required IconData icon,
     required List<Widget> children,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.currentSurface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        side: BorderSide(color: AppColors.currentBorder),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 10),
-          ...children,
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.currentTextPrimary)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 10),
+            ...children,
+          ],
+        ),
       ),
     );
   }
@@ -210,8 +281,8 @@ class _SettingsViewState extends State<SettingsView> {
   Widget _toggleItem(String title, String subtitle, bool value, [ValueChanged<bool>? onChanged]) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+      title: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.currentTextPrimary)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 11, color: AppColors.currentTextMuted)),
       value: value,
       activeThumbColor: AppColors.primary,
       onChanged: onChanged ?? (_) {},

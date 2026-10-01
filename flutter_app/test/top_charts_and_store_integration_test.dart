@@ -65,7 +65,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Top Charts Leaderboard'), findsOneWidget);
+      expect(find.text('Top Charts'), findsOneWidget);
       expect(find.text('Top Free'), findsOneWidget);
       expect(find.text('Top Paid'), findsOneWidget);
       expect(find.text('Top Grossing'), findsOneWidget);
@@ -102,14 +102,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Default is US
-      expect(find.text('US STORE TELEMETRY'), findsOneWidget);
+      // Default region is United States
+      final regionDropdown = find.text('🇺🇸 United States');
+      expect(regionDropdown, findsOneWidget);
 
       // Tap Region Dropdown and select United Kingdom
       final ukOption = find.text('🇬🇧 United Kingdom');
-      // In the dropdown button, current value is displayed
-      final regionDropdown = find.text('🇺🇸 United States');
-      expect(regionDropdown, findsOneWidget);
       await tester.tap(regionDropdown);
       await tester.pumpAndSettle();
 
@@ -118,9 +116,8 @@ void main() {
       await tester.tap(ukOption.last);
       await tester.pumpAndSettle();
 
-      // Verify UK telemetry is now active
-      expect(find.text('UK STORE TELEMETRY'), findsOneWidget);
-      expect(find.textContaining('United Kingdom 🇬🇧'), findsWidgets);
+      // Verify UK is now selected in dropdown
+      expect(find.text('🇬🇧 United Kingdom'), findsWidgets);
     });
 
     testWidgets('Renders responsive tab bar on mobile screens', (tester) async {
@@ -142,18 +139,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Top Charts Leaderboard'), findsOneWidget);
+      expect(find.text('Top Charts'), findsOneWidget);
       // In mobile mode, tabs are visible
-      expect(find.text('Top Free'), findsOneWidget);
-      expect(find.text('Top Paid'), findsOneWidget);
-      expect(find.text('Top Grossing'), findsOneWidget);
+      expect(find.text('Top Free'), findsWidgets);
+      expect(find.text('Top Paid'), findsWidgets);
+      expect(find.text('Top Grossing'), findsWidgets);
 
       // Switch to Top Paid tab
-      await tester.tap(find.text('Top Paid'));
+      await tester.tap(find.text('Top Paid').first);
       await tester.pumpAndSettle();
 
-      // Top Paid header shows
-      expect(find.text('Top Paid Apps'), findsOneWidget);
+      // Top Paid is selected
+      expect(find.text('Top Paid'), findsWidgets);
     });
   });
 

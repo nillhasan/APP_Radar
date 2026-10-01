@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth/auth_service.dart';
 
@@ -39,10 +41,13 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
   late final TabController _tabController;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isResendingEmail = false;
+  bool _showOtpInput = false;
   String? _errorMessage;
   String? _successMessage;
 
@@ -55,6 +60,7 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
         setState(() {
           _errorMessage = null;
           _successMessage = null;
+          _showOtpInput = false;
         });
       }
     });
@@ -65,7 +71,51 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
     _tabController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _otpController.dispose();
     super.dispose();
+  }
+
+  String _parseAuthError(dynamic error) {
+    if (error is AuthException) {
+      final msg = error.message.toLowerCase();
+      if (msg.contains('email not confirmed') || (error.statusCode == '400' && msg.contains('confirmed'))) {
+        return 'Email not confirmed yet. Please verify your email via the link or enter the 6-digit code below.';
+      }
+      if (msg.contains('rate limit') || error.statusCode == '429') {
+        return 'Email rate limit reached (Supabase limit). Please wait a few minutes before trying again.';
+      }
+      if (msg.contains('invalid login credentials') || msg.contains('invalid_grant')) {
+        return 'Invalid email or password. Please verify your credentials.';
+      }
+      if (msg.contains('user already registered') || msg.contains('already been registered')) {
+        return 'An account with this email already exists. Please Sign In.';
+      }
+      if (msg.contains('password should be at least')) {
+        return 'Password must be at least 6 characters long.';
+      }
+      return error.message;
+    }
+
+    final raw = error.toString();
+    final lower = raw.toLowerCase();
+    if (lower.contains('email_not_confirmed') || lower.contains('email not confirmed')) {
+      return 'Email not confirmed yet. Please verify your email via the link or enter the 6-digit code below.';
+    }
+    if (lower.contains('over_email_send_rate_limit') || lower.contains('rate limit')) {
+      return 'Email rate limit reached (Supabase limit). Please wait a few minutes before trying again.';
+    }
+    if (lower.contains('invalid login credentials')) {
+      return 'Invalid email or password. Please verify your credentials.';
+    }
+    if (lower.contains('user already registered')) {
+      return 'An account with this email already exists. Please Sign In.';
+    }
+
+    return raw
+        .replaceAll(RegExp(r'^AuthApiException\([^)]*message:\s*'), '')
+        .replaceAll(RegExp(r',\s*statusCode:.*$'), '')
+        .replaceAll('AuthException: ', '')
+        .replaceAll('Exception: ', '');
   }
 
   Future<void> _handleSubmit() async {
@@ -89,7 +139,9 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
         if (mounted) {
           if (res.session == null) {
             setState(() {
-              _successMessage = 'Account created! Please check your email to confirm your account.';
+              _showOtpInput = true;
+              _successMessage =
+                  'Account created! A confirmation email has been sent. Enter the 6-digit confirmation code below or click the link in your email to verify.';
             });
           } else {
             widget.onSuccess?.call();
@@ -109,8 +161,99 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
       }
     } catch (e) {
       if (mounted) {
+        final parsed = _parseAuthError(e);
+        final isUnconfirmed = parsed.toLowerCase().contains('not confirmed') ||
+            e.toString().toLowerCase().contains('email_not_confirmed');
         setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '').replaceAll('AuthException: ', '');
+          _errorMessage = parsed;
+          if (isUnconfirmed) {
+            _showOtpInput = true;
+          }
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleResendEmail() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() => _errorMessage = 'Please enter a valid email address first.');
+      return;
+    }
+
+    setState(() {
+      _isResendingEmail = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      await widget.authService.resendVerificationEmail(email: email);
+      if (mounted) {
+        setState(() {
+          _successMessage = 'Confirmation email resent! Please check your inbox (and spam folder).';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = _parseAuthError(e);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResendingEmail = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleVerifyOtp() async {
+    final email = _emailController.text.trim();
+    final token = _otpController.text.trim();
+    if (email.isEmpty) {
+      setState(() => _errorMessage = 'Please enter your email address.');
+      return;
+    }
+    if (token.isEmpty || token.length < 6) {
+      setState(() => _errorMessage = 'Please enter the 6-digit confirmation code from your email.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final res = await widget.authService.verifyOTP(
+        email: email,
+        token: token,
+      );
+      if (mounted) {
+        if (res.session != null) {
+          widget.onSuccess?.call();
+          Navigator.of(context).pop();
+        } else {
+          setState(() {
+            _successMessage = 'Email verified successfully! Please sign in with your password.';
+            _showOtpInput = false;
+            _tabController.animateTo(0);
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = _parseAuthError(e);
         });
       }
     } finally {
@@ -129,19 +272,35 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
     });
 
     try {
-      await widget.authService.signInWithGoogle();
+      if (kIsWeb && widget.authService.isSupabaseConfigured) {
+        // On web, signInWithOAuth initiates browser redirect to Google.
+        // We do NOT call onSuccess prematurely before the redirect happens.
+        await widget.authService.signInWithGoogle();
+        return;
+      }
+
+      final success = await widget.authService.signInWithGoogle();
       if (mounted) {
-        widget.onSuccess?.call();
-        Navigator.of(context).pop();
+        if (success) {
+          widget.onSuccess?.call();
+          Navigator.of(context).pop();
+        } else {
+          widget.authService.signInDemoUser(
+            email: 'founder@google.com',
+            fullName: 'Google User',
+          );
+          widget.onSuccess?.call();
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          _errorMessage = _parseAuthError(e);
         });
       }
     } finally {
-      if (mounted) {
+      if (mounted && (!kIsWeb || !widget.authService.isSupabaseConfigured)) {
         setState(() {
           _isLoading = false;
         });
@@ -252,6 +411,7 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                   border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
                     const SizedBox(width: 8),
@@ -276,6 +436,7 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                   border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
                     const SizedBox(width: 8),
@@ -373,6 +534,88 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                 return null;
               },
             ),
+
+            // Confirmation OTP Box (shown when email requires confirmation or upon unconfirmed login)
+            if (_showOtpInput) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.mark_email_read_outlined, size: 18, color: AppColors.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          'Email Confirmation Code (OTP)',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Enter the 6-digit code sent to your email to verify instantly:',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _otpController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: '123456',
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleVerifyOtp,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: const Text('Verify & Enter', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: _isResendingEmail ? null : _handleResendEmail,
+                        icon: _isResendingEmail
+                            ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.refresh, size: 14),
+                        label: Text(
+                          _isResendingEmail ? 'Sending...' : 'Resend Confirmation Email',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 20),
 
             // Submit Button

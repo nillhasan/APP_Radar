@@ -55,10 +55,11 @@ void main() {
 
       expect(find.text('AppRadar'), findsWidgets);
       expect(find.text('Find. Analyze. Build.'), findsOneWidget);
-      expect(find.text('Apps Analyzed'), findsOneWidget);
-      expect(find.text('New Opportunities'), findsOneWidget);
-      expect(find.text('High Potential'), findsOneWidget);
-      expect(find.text('Markets Tracked'), findsOneWidget);
+      expect(find.text('Search for app or publisher...'), findsOneWidget);
+      expect(find.text('Top Charts'), findsOneWidget);
+      expect(find.text('Top Free'), findsOneWidget);
+      expect(find.text('Top Paid'), findsOneWidget);
+      expect(find.text('Top Grossing'), findsOneWidget);
     });
 
     testWidgets('AppRadarApp renders on Mobile without errors', (WidgetTester tester) async {

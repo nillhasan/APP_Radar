@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
-import '../../data/models/market_trend.dart';
 import '../../data/repositories/opportunity_repository.dart';
 import '../../data/repositories/market_trend_repository.dart';
-import '../../widgets/metric_card.dart';
-import '../../widgets/score_badge.dart';
-import '../../widgets/section_header.dart';
+import '../../data/repositories/app_repository.dart';
 import '../../widgets/app_icon_widget.dart';
 import '../../widgets/top_charts/top_charts_leaderboard.dart';
-import '../../data/repositories/app_repository.dart';
 
 class DashboardView extends StatefulWidget {
   final OpportunityRepository oppRepo;
@@ -33,11 +28,27 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   late Future<List<dynamic>> _dataFuture;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
+  bool _showSuggestions = false;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _searchFocusNode.addListener(() {
+      setState(() {
+        _showSuggestions = _searchFocusNode.hasFocus && _searchQuery.trim().isNotEmpty;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   void _loadData() {
@@ -50,7 +61,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1080;
+    final isMobile = MediaQuery.of(context).size.width < 768;
 
     return FutureBuilder<List<dynamic>>(
       future: _dataFuture,
@@ -59,397 +70,373 @@ class _DashboardViewState extends State<DashboardView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final topApps = snapshot.data![0] as List<AppItem>;
-        final trends = snapshot.data![1] as List<CategoryTrend>;
         final allApps = snapshot.data![2] as List<AppItem>;
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            setState(() => _loadData());
-            await _dataFuture;
-          },
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              SectionHeader(
-                title: 'Discover Tomorrow’s App Opportunities Today',
-                subtitle:
-                    'AI-computed market velocity, store signals, and review sentiment across ${allApps.length} tracked applications.',
-              ),
-              _buildKpiGrid(allApps),
-              const SizedBox(height: 24),
-              TopChartsLeaderboard(
-                apps: allApps,
-                onOpenApp: widget.onOpenApp,
-              ),
-              const SizedBox(height: 24),
-              if (isDesktop)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: _buildTopOpportunitiesCard(topApps),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      flex: 3,
-                      child: _buildMarketTrendsCard(trends),
-                    ),
-                  ],
-                )
-              else ...[
-                _buildTopOpportunitiesCard(topApps),
-                const SizedBox(height: 20),
-                _buildMarketTrendsCard(trends),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
+        final matchingSuggestions = _searchQuery.trim().isEmpty
+            ? <AppItem>[]
+            : allApps
+                .where((a) =>
+                    a.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    a.developer.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    a.category.toLowerCase().contains(_searchQuery.toLowerCase()))
+                .take(5)
+                .toList();
 
-  Widget _buildKpiGrid(List<AppItem> allApps) {
-    final totalCount = allApps.length;
-    final highPotentialCount = allApps.where((a) => a.opportunityScore >= 75).length;
-    final velocityCount = allApps.where((a) => a.growthRate >= 15.0).length;
-    final platformsCount = allApps.map((a) => a.platform).toSet().length;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Wrap(
-          spacing: 16,
-          runSpacing: 16,
+        return Stack(
           children: [
-            MetricCard(
-              title: 'Apps Analyzed',
-              value: '$totalCount',
-              delta: '+24% this week',
-              icon: Icons.analytics_outlined,
-              isPositive: true,
-            ),
-            MetricCard(
-              title: 'New Opportunities',
-              value: '$velocityCount',
-              delta: 'Growth > 15%',
-              icon: Icons.bolt,
-              isPositive: true,
-            ),
-            MetricCard(
-              title: 'High Potential',
-              value: '$highPotentialCount',
-              delta: 'Score ≥ 75',
-              icon: Icons.star_border,
-              isPositive: true,
-            ),
-            MetricCard(
-              title: 'Markets Tracked',
-              value: '$platformsCount',
-              delta: 'US • UK • CA',
-              icon: Icons.public,
-              isPositive: true,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildTopOpportunitiesCard(List<AppItem> apps) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Top Opportunities Today',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Ranked by transparent 5-signal opportunity composite',
-                      style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'Updated hourly',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          for (int i = 0; i < apps.length; i++) ...[
-            _buildOpportunityRow(i + 1, apps[i]),
-            if (i < apps.length - 1) const Divider(height: 1),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOpportunityRow(int rank, AppItem app) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 540),
-          child: Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: rank <= 3 ? AppColors.primaryLight : AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '#$rank',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: rank <= 3 ? AppColors.primary : AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              AppIconWidget(
-                iconUrl: app.iconUrl,
-                iconEmoji: app.iconEmoji,
-                size: 38,
-                borderRadius: 8,
-                fontSize: 20,
-              ),
-              const SizedBox(width: 14),
-              SizedBox(
-                width: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            app.name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            app.category,
-                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${app.rating} ⭐ (${(app.reviewCount / 1000).toStringAsFixed(1)}k reviews) • +${app.growthRate.toInt()}% growth',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              ScoreBadge(score: app.opportunityScore),
-              const SizedBox(width: 12),
-              FilledButton.tonal(
-                onPressed: () => widget.onOpenApp(app),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-                child: const Text('View Teardown'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMarketTrendsCard(List<CategoryTrend> trends) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Market Category Trends',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '30D Growth',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              for (final t in trends) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t.category,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '${t.totalApps} apps tracked',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.successLight,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '+${t.growthRate.toInt()}%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ),
+            // Ambient Atmosphere Background Gradient
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.0, 0.18, 0.42, 0.75, 1.0],
+                    colors: [
+                      Color(0xFF93C5FD), // Vibrant sky top (matching reference Image 1)
+                      Color(0xFFBAE6FD), // Sky blue tint
+                      Color(0xFFE0F2FE), // Soft ice blue
+                      Color(0xFFF8FAFC), // Clean off-white
+                      Colors.white,
                     ],
                   ),
                 ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              ),
             ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.auto_awesome, color: Colors.amber, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Turn Signals into Shipped Apps',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+
+            // Top-left ambient glowing decorative orb
+            Positioned(
+              top: -60,
+              left: -40,
+              child: IgnorePointer(
+                child: Container(
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.65),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Generate a full MVP Blueprint, database schema, and Flutter architecture from any discovered opportunity.',
-                style: TextStyle(fontSize: 12, color: Color(0xFFDBEAFE), height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: widget.onNavigateToBuildAI,
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Open Build With AI', style: TextStyle(fontWeight: FontWeight.w700)),
-                    SizedBox(width: 6),
-                    Icon(Icons.arrow_forward, size: 14),
-                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+
+            // Top-right ambient glowing decorative orb
+            Positioned(
+              top: -40,
+              right: -30,
+              child: IgnorePointer(
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFBAE6FD).withValues(alpha: 0.5),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Main Content ScrollView
+            RefreshIndicator(
+              onRefresh: () async {
+                setState(() => _loadData());
+                await _dataFuture;
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 24,
+                  vertical: isMobile ? 24 : 36,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1140),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Pill Category/Intelligence Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFF93C5FD).withValues(alpha: 0.6)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF2563EB).withValues(alpha: 0.06),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.radar_rounded, size: 14, color: Color(0xFF2563EB)),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  isMobile ? 'GLOBAL STORE INTELLIGENCE' : 'GLOBAL STORE TELEMETRY & APP INTELLIGENCE',
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    fontStyle: FontStyle.italic,
+                                    color: Color(0xFF1D4ED8),
+                                    letterSpacing: 0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Big Bold Hero Headline (matching Image 1)
+                        Text(
+                          'Next-Gen Mobile App Intelligence & Market Telemetry',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isMobile ? 24 : 34,
+                            fontWeight: FontWeight.w800,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: -0.6,
+                            color: const Color(0xFF1D4ED8), // Royal Blue
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Hero Subtitle Description (matching Image 1)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 680),
+                          child: Text(
+                            'Uncover real-time store trends, monitor competitor breakthroughs, and accelerate your app\'s global growth with high-precision telemetry.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: isMobile ? 13 : 14.5,
+                              height: 1.55,
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Floating Pill Search Bar
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 580),
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(30),
+                                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.05),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Refresh icon on left
+                                      IconButton(
+                                        icon: const Icon(Icons.refresh_rounded, color: Color(0xFF94A3B8), size: 20),
+                                        tooltip: 'Refresh live data',
+                                        splashRadius: 20,
+                                        onPressed: () {
+                                          setState(() => _loadData());
+                                        },
+                                      ),
+                                      // Text Field
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          focusNode: _searchFocusNode,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                          decoration: const InputDecoration(
+                                            hintText: 'Search for app or publisher...',
+                                            hintStyle: TextStyle(
+                                              color: Color(0xFF94A3B8),
+                                              fontSize: 13.5,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _searchQuery = val;
+                                              _showSuggestions = val.trim().isNotEmpty;
+                                            });
+                                          },
+                                          onSubmitted: (val) {
+                                            setState(() => _showSuggestions = false);
+                                            if (matchingSuggestions.isNotEmpty) {
+                                              widget.onOpenApp(matchingSuggestions.first);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      // Clear query button
+                                      if (_searchQuery.isNotEmpty)
+                                        IconButton(
+                                          icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                          splashRadius: 16,
+                                          onPressed: () {
+                                            setState(() {
+                                              _searchController.clear();
+                                              _searchQuery = '';
+                                              _showSuggestions = false;
+                                            });
+                                          },
+                                        ),
+                                      // Blue circular search button on right
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 7),
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() => _showSuggestions = false);
+                                            if (matchingSuggestions.isNotEmpty) {
+                                              widget.onOpenApp(matchingSuggestions.first);
+                                            }
+                                          },
+                                          borderRadius: BorderRadius.circular(20),
+                                          child: Container(
+                                            width: 36,
+                                            height: 36,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF2563EB),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.search_rounded,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Instant Search Suggestions Dropdown
+                                if (_showSuggestions && matchingSuggestions.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: matchingSuggestions.map((app) {
+                                        return InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _showSuggestions = false;
+                                              _searchController.text = app.name;
+                                              _searchQuery = app.name;
+                                            });
+                                            widget.onOpenApp(app);
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                            child: Row(
+                                              children: [
+                                                AppIconWidget(
+                                                  iconUrl: app.iconUrl,
+                                                  iconEmoji: app.iconEmoji,
+                                                  size: 28,
+                                                  borderRadius: 6,
+                                                  fontSize: 14,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        app.name,
+                                                        style: const TextStyle(
+                                                          fontSize: 12.5,
+                                                          fontWeight: FontWeight.w700,
+                                                          color: Color(0xFF0F172A),
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      Text(
+                                                        '${app.category} • ${app.developer}',
+                                                        style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+
+                        // Main Elevated Pop-up Card
+                        TopChartsLeaderboard(
+                          apps: allApps,
+                          onOpenApp: widget.onOpenApp,
+                          searchQuery: _searchQuery,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

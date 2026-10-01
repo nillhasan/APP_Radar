@@ -66,6 +66,14 @@ void main() {
       expect(find.text('Continue with Google'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
+      expect(find.text('Sign In to AppRadar'), findsOneWidget);
+
+      // Switch to Create Account tab
+      await tester.tap(find.text('Create Account'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Create Free Account'), findsOneWidget);
     });
   });
 }
+
