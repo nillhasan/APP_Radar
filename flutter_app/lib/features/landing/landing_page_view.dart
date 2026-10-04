@@ -183,15 +183,17 @@ class _LandingPageViewState extends State<LandingPageView> {
       height: 72,
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B0F19).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95),
-        border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0), width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDark ? AppColors.obsidian.withValues(alpha: 0.98) : Colors.white.withValues(alpha: 0.95),
+        border: Border(bottom: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0), width: 1)),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Row(
         children: [
@@ -205,19 +207,11 @@ class _LandingPageViewState extends State<LandingPageView> {
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                    ),
+                    color: isDark ? AppColors.iron : const Color(0xFF2563EB),
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.25),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
                   ),
-                  child: const Icon(Icons.radar, color: Colors.white, size: 20),
+                  child: const Icon(Icons.radar, color: AppColors.signalBlue, size: 20),
                 ),
                 const SizedBox(width: 10),
                 Column(
@@ -227,18 +221,18 @@ class _LandingPageViewState extends State<LandingPageView> {
                     Text(
                       'AppRadar',
                       style: TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         fontSize: 19,
-                        letterSpacing: -0.5,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        letterSpacing: -0.6,
+                        color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                       ),
                     ),
                     Text(
                       'Find. Analyze. Build.',
                       style: TextStyle(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB).withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppColors.smoke : const Color(0xFF2563EB).withValues(alpha: 0.9),
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -280,17 +274,17 @@ class _LandingPageViewState extends State<LandingPageView> {
                   ),
                   const SizedBox(width: 6),
 
-                  // Right CTAs: Strictly Gated (No Console entry without Authentication)
+                  // Right CTAs
                   if (!widget.authService.isAuthenticated) ...[
                     OutlinedButton(
                       onPressed: widget.onOpenAuthModal,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
-                        side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1), width: 1.2),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        foregroundColor: isDark ? AppColors.paper : const Color(0xFF1E293B),
+                        side: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1), width: 1.2),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                        shape: const StadiumBorder(), // REKKI --radius-buttons: 59px
                       ),
-                      child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                     ),
                   ],
 
@@ -322,8 +316,9 @@ class _LandingPageViewState extends State<LandingPageView> {
           title,
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+            fontWeight: FontWeight.w500,
+            color: isDark ? AppColors.ash : const Color(0xFF475569), // REKKI --color-ash: #858585
+            letterSpacing: -0.1,
           ),
         ),
       ),
@@ -446,20 +441,7 @@ class _LandingPageViewState extends State<LandingPageView> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B0F19) : Colors.white,
-        gradient: RadialGradient(
-          center: const Alignment(0.85, -0.55),
-          radius: 1.25,
-          colors: isDark
-              ? [
-                  const Color(0xFF1E1B4B).withValues(alpha: 0.45), // Soft ambient indigo glow
-                  const Color(0xFF0B0F19),
-                ]
-              : const [
-                  Color(0xFFEFF6FF), // Soft ambient light blue glow
-                  Colors.white,
-                ],
-        ),
+        color: isDark ? AppColors.obsidian : Colors.white,
       ),
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 18 : (isTablet ? 32 : 56),
@@ -507,25 +489,25 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Category Eyebrow Tag
+        // Category Eyebrow Tag (REKKI Status Pill)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE)),
+            color: isDark ? AppColors.iron : const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(59), // REKKI --radius-full: 59px
+            border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFBFDBFE)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.radar_rounded, size: 14, color: Color(0xFF2563EB)),
+              const Icon(Icons.radar_rounded, size: 14, color: AppColors.signalBlue),
               const SizedBox(width: 6),
               Text(
                 'GLOBAL STORE TELEMETRY & APP INTELLIGENCE',
                 style: TextStyle(
                   fontSize: 10.5,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.paper : const Color(0xFF1D4ED8),
                   letterSpacing: 0.6,
                 ),
               ),
@@ -535,29 +517,29 @@ class _LandingPageViewState extends State<LandingPageView> {
 
         const SizedBox(height: 18),
 
-        // Giant Left-Aligned Headline (MobileAction style)
+        // Architectural Whisper-Weight Headline (REKKI Diatype style: weight 400 with negative tracking)
         RichText(
           text: TextSpan(
             style: TextStyle(
               fontSize: isMobile ? 36 : (isTablet ? 44 : 54),
-              fontWeight: FontWeight.w900,
-              color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+              fontWeight: FontWeight.w400, // REKKI: Whisper-weight display headline
+              color: isDark ? AppColors.paper : const Color(0xFF0F172A),
               height: 1.10,
-              letterSpacing: -1.6,
+              letterSpacing: -2.0, // REKKI tight tracking
             ),
             children: [
               const TextSpan(text: 'Build\napp store\nintelligence on\n'),
               TextSpan(
                 text: _dynamicHeroWords[_activeHeroWordIndex],
-                style: TextStyle(
-                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                  fontStyle: FontStyle.italic,
+                style: const TextStyle(
+                  color: AppColors.signalBlue,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              TextSpan(
+              const TextSpan(
                 text: ' |',
                 style: TextStyle(
-                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                  color: AppColors.signalBlue,
                   fontWeight: FontWeight.w300,
                 ),
               ),
@@ -567,14 +549,14 @@ class _LandingPageViewState extends State<LandingPageView> {
 
         const SizedBox(height: 14),
 
-        // Subtitle Heading (Preserves test compatibility and adds clarity)
+        // Subtitle Heading
         Text(
           'Next-Gen Mobile App Intelligence & Market Telemetry',
           style: TextStyle(
             fontSize: 15.5,
-            fontWeight: FontWeight.w700,
-            color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
-            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.paper : const Color(0xFF1E293B),
+            letterSpacing: -0.2,
           ),
         ),
 
@@ -588,7 +570,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             style: TextStyle(
               fontSize: 14.5,
               height: 1.55,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+              color: isDark ? AppColors.ash : const Color(0xFF475569), // REKKI Ash #858585
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -596,7 +578,7 @@ class _LandingPageViewState extends State<LandingPageView> {
 
         const SizedBox(height: 28),
 
-        // Dual Action Buttons (MobileAction pill buttons)
+        // Dual Action Buttons (REKKI 59px pill buttons)
         Wrap(
           spacing: 14,
           runSpacing: 12,
@@ -617,15 +599,15 @@ class _LandingPageViewState extends State<LandingPageView> {
               ),
               label: const Text(
                 'Get Started Free',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF2563EB) : const Color(0xFF0F172A), // Dark navy slate pill
+                backgroundColor: AppColors.signalBlue, // REKKI Signal Blue #0063e1
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                elevation: 4,
-                shadowColor: Colors.black.withValues(alpha: 0.25),
-                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                elevation: 0,
+                shadowColor: Colors.transparent, // REKKI: zero drop shadows
+                shape: const StadiumBorder(), // REKKI --radius-buttons: 59px
               ),
             ),
 
@@ -634,14 +616,14 @@ class _LandingPageViewState extends State<LandingPageView> {
               icon: const Icon(Icons.leaderboard_outlined, size: 17),
               label: const Text(
                 'Explore Live Charts',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1), width: 1.5),
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-                shape: const StadiumBorder(),
+                foregroundColor: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                backgroundColor: isDark ? AppColors.iron : Colors.white,
+                side: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1), width: 1.2),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: const StadiumBorder(), // REKKI --radius-buttons: 59px
               ),
             ),
           ],
@@ -707,21 +689,18 @@ class _LandingPageViewState extends State<LandingPageView> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.1 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI --radius-cards: 16px
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0), width: 1),
+        boxShadow: isDark
+            ? [] // REKKI: zero drop shadows, elevation via inset border and surface steps
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -733,10 +712,10 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                  color: isDark ? AppColors.iron : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFF2563EB)),
+                child: const Icon(Icons.bar_chart_rounded, size: 16, color: AppColors.signalBlue),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -744,8 +723,8 @@ class _LandingPageViewState extends State<LandingPageView> {
                   'Store Telemetry & Opportunity Radar',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569),
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.paper : const Color(0xFF475569),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -754,9 +733,9 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
+                  color: isDark ? AppColors.iron : const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(59), // REKKI status pill
+                  border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFA7F3D0)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1001,18 +980,20 @@ class _LandingPageViewState extends State<LandingPageView> {
     final isDark = ThemeService.instance.isDark;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI --radius-cards: 16px
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI: zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1024,7 +1005,7 @@ class _LandingPageViewState extends State<LandingPageView> {
               Expanded(
                 child: Text(
                   'AI Opportunity Scores',
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569)),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? AppColors.paper : const Color(0xFF475569)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1032,8 +1013,9 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF7C2D12) : const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(6),
+                  color: isDark ? AppColors.iron : const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(59), // REKKI pill status
+                  border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
                 ),
                 child: Text('94 / 100', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFFFED7AA) : const Color(0xFFEA580C))),
               ),
@@ -1046,7 +1028,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFFF97316), Color(0xFFFB923C)]),
+                  color: isDark ? AppColors.iron : const Color(0xFFF97316),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.bolt, color: Colors.white, size: 18),
@@ -1056,8 +1038,8 @@ class _LandingPageViewState extends State<LandingPageView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('HabitFlow Micro-SaaS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: isDark ? Colors.white : const Color(0xFF0F172A)), overflow: TextOverflow.ellipsis),
-                    Text('Productivity • US Store', style: TextStyle(fontSize: 10.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), overflow: TextOverflow.ellipsis),
+                    Text('HabitFlow Micro-SaaS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? AppColors.paper : const Color(0xFF0F172A)), overflow: TextOverflow.ellipsis),
+                    Text('Productivity • US Store', style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.ash : const Color(0xFF64748B)), overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
@@ -1066,11 +1048,11 @@ class _LandingPageViewState extends State<LandingPageView> {
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildPhonePreviewStrip(isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF), const Color(0xFF3B82F6)),
+              _buildPhonePreviewStrip(isDark ? AppColors.iron : const Color(0xFFEFF6FF), const Color(0xFF3B82F6)),
               const SizedBox(width: 6),
-              _buildPhonePreviewStrip(isDark ? const Color(0xFF1E293B) : const Color(0xFFF0FDF4), const Color(0xFF10B981)),
+              _buildPhonePreviewStrip(isDark ? AppColors.iron : const Color(0xFFF0FDF4), const Color(0xFF10B981)),
               const SizedBox(width: 6),
-              _buildPhonePreviewStrip(isDark ? const Color(0xFF1E293B) : const Color(0xFFFAF5FF), const Color(0xFF8B5CF6)),
+              _buildPhonePreviewStrip(isDark ? AppColors.iron : const Color(0xFFFAF5FF), const Color(0xFF8B5CF6)),
             ],
           ),
         ],
@@ -1106,30 +1088,37 @@ class _LandingPageViewState extends State<LandingPageView> {
     final isDark = ThemeService.instance.isDark;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI --radius-cards: 16px
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI: zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.travel_explore_rounded, size: 15, color: Color(0xFF8B5CF6)),
+              Icon(Icons.travel_explore_rounded, size: 15, color: isDark ? AppColors.signalBlue : const Color(0xFF8B5CF6)),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Teardown Telemetry',
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569)),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                    color: isDark ? AppColors.paper : const Color(0xFF475569),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1137,10 +1126,18 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF4C1D95) : const Color(0xFFF3E8FF),
+                  color: isDark ? AppColors.iron : const Color(0xFFF3E8FF),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text('REVERSED', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFFDDD6FE) : const Color(0xFF7C3AED))),
+                child: Text(
+                  'REVERSED',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                    color: isDark ? AppColors.ash : const Color(0xFF7C3AED),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1165,20 +1162,38 @@ class _LandingPageViewState extends State<LandingPageView> {
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-                  ),
+                  color: isDark ? AppColors.graphite : null,
+                  gradient: isDark
+                      ? null
+                      : const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                        ),
+                  border: isDark ? Border.all(color: AppColors.signalBlue.withValues(alpha: 0.4)) : null,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.query_stats, color: Colors.white, size: 20),
-                    SizedBox(height: 2),
-                    Text('ARR', style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.w700, color: Colors.white70)),
-                    Text('\$510K', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                    Icon(Icons.query_stats, color: isDark ? AppColors.signalBlue : Colors.white, size: 20),
+                    const SizedBox(height: 2),
+                    Text(
+                      'ARR',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.ash : Colors.white70,
+                      ),
+                    ),
+                    Text(
+                      '\$510K',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: isDark ? AppColors.paper : Colors.white,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1195,13 +1210,13 @@ class _LandingPageViewState extends State<LandingPageView> {
         Flexible(
           child: Text(
             '$label: ',
-            style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            style: TextStyle(fontSize: 10, color: isDark ? AppColors.ash : const Color(0xFF64748B)),
             overflow: TextOverflow.ellipsis,
           ),
         ),
         Text(
           value,
-          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: isDark ? AppColors.paper : const Color(0xFF0F172A)),
         ),
         if (badge != null) ...[
           const SizedBox(width: 3),
@@ -1223,17 +1238,17 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        border: Border.symmetric(horizontal: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+        color: isDark ? AppColors.obsidian : const Color(0xFFF8FAFC),
+        border: Border.symmetric(horizontal: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0))),
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'TRUSTED BY 5,000+ MOBILE DEVELOPERS & GROWTH TEAMS WORLDWIDE',
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF94A3B8),
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.ash : const Color(0xFF94A3B8),
               letterSpacing: 0.8,
             ),
           ),
@@ -1244,7 +1259,7 @@ class _LandingPageViewState extends State<LandingPageView> {
               children: [
                 const SizedBox(width: 24),
                 _buildCategoryBadge('🎮 Gaming Studios', const Color(0xFF8B5CF6), isDark),
-                _buildCategoryBadge('⚡ Productivity Utilities', const Color(0xFF2563EB), isDark),
+                _buildCategoryBadge('⚡ Productivity Utilities', AppColors.signalBlue, isDark),
                 _buildCategoryBadge('🧘 Health & Fitness', const Color(0xFF10B981), isDark),
                 _buildCategoryBadge('💳 FinTech Apps', const Color(0xFFF59E0B), isDark),
                 _buildCategoryBadge('🛍️ Mobile E-Commerce', const Color(0xFFEC4899), isDark),
@@ -1263,20 +1278,22 @@ class _LandingPageViewState extends State<LandingPageView> {
       margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : color.withValues(alpha: 0.3)),
+        boxShadow: isDark
+            ? [] // REKKI: zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppColors.paper : color),
       ),
     );
   }
@@ -1285,6 +1302,8 @@ class _LandingPageViewState extends State<LandingPageView> {
   // 4. INTERACTIVE PRODUCT SUITE TABS (MobileAction)
   // ==========================================
   Widget _buildProductSuiteTabsSection(bool isMobile, bool isTablet) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       key: _featuresKey,
       padding: EdgeInsets.symmetric(
@@ -1297,12 +1316,12 @@ class _LandingPageViewState extends State<LandingPageView> {
           child: Column(
             children: [
               // Section Header
-              const Text(
+              Text(
                 'EVERYTHING YOU NEED TO WIN THE APP STORES',
                 style: TextStyle(
                   fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF2563EB),
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
                   letterSpacing: 0.8,
                 ),
               ),
@@ -1312,18 +1331,22 @@ class _LandingPageViewState extends State<LandingPageView> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: isMobile ? 26 : 34,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF0F172A),
-                  letterSpacing: -0.8,
+                  fontWeight: FontWeight.w500, // REKKI whisper-weight
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                  letterSpacing: -1.0,
                 ),
               ),
               const SizedBox(height: 12),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
-                child: const Text(
+                child: Text(
                   'Switch between tabs below to explore how AppRadar transforms raw store signals into actionable opportunities and production blueprints.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14.5, color: Color(0xFF64748B), height: 1.5),
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    color: isDark ? AppColors.ash : const Color(0xFF64748B),
+                    height: 1.5,
+                  ),
                 ),
               ),
 
@@ -1335,11 +1358,11 @@ class _LandingPageViewState extends State<LandingPageView> {
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildFeatureTabItem(0, 'Store Telemetry', Icons.leaderboard_outlined, const Color(0xFF2563EB)),
-                  _buildFeatureTabItem(1, 'Opportunity Radar', Icons.local_fire_department_outlined, const Color(0xFFF97316)),
-                  _buildFeatureTabItem(2, 'Instant Teardown', Icons.travel_explore_outlined, const Color(0xFF10B981)),
-                  _buildFeatureTabItem(3, 'Competitor Matrix', Icons.compare_arrows_outlined, const Color(0xFF8B5CF6)),
-                  _buildFeatureTabItem(4, 'Build With AI', Icons.auto_awesome, const Color(0xFFEC4899)),
+                  _buildFeatureTabItem(0, 'Store Telemetry', Icons.leaderboard_outlined, AppColors.signalBlue, isDark),
+                  _buildFeatureTabItem(1, 'Opportunity Radar', Icons.local_fire_department_outlined, const Color(0xFFF97316), isDark),
+                  _buildFeatureTabItem(2, 'Instant Teardown', Icons.travel_explore_outlined, const Color(0xFF10B981), isDark),
+                  _buildFeatureTabItem(3, 'Competitor Matrix', Icons.compare_arrows_outlined, const Color(0xFF8B5CF6), isDark),
+                  _buildFeatureTabItem(4, 'Build With AI', Icons.auto_awesome, const Color(0xFFEC4899), isDark),
                 ],
               ),
 
@@ -1360,47 +1383,51 @@ class _LandingPageViewState extends State<LandingPageView> {
     );
   }
 
-  Widget _buildFeatureTabItem(int index, String title, IconData icon, Color color) {
+  Widget _buildFeatureTabItem(int index, String title, IconData icon, Color color, [bool isDark = false]) {
     final isSelected = _selectedProductTab == index;
     return InkWell(
       onTap: () => setState(() => _selectedProductTab = index),
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(59), // REKKI 59px pill
       child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? color : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isSelected ? color : const Color(0xFFE2E8F0),
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ]
-                : [],
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.signalBlue : color)
+              : (isDark ? AppColors.carbon : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+          border: Border.all(
+            color: isSelected
+                ? (isDark ? AppColors.signalBlue : color)
+                : (isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: isSelected ? Colors.white : const Color(0xFF475569)),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : const Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
+          boxShadow: isDark || !isSelected
+              ? [] // REKKI: zero drop shadows
+              : [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
-      );
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: isSelected ? Colors.white : (isDark ? AppColors.ash : const Color(0xFF475569))),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : (isDark ? AppColors.paper : const Color(0xFF475569)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildActiveTabContent(bool isMobile, bool isTablet) {
@@ -1421,20 +1448,24 @@ class _LandingPageViewState extends State<LandingPageView> {
 
   // Tab 0: Store Telemetry with embedded TopChartsLeaderboard
   Widget _buildStoreTelemetryTab(bool isMobile) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       key: _topChartsKey,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1444,23 +1475,30 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
+                  color: isDark ? AppColors.iron : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.leaderboard_rounded, color: Color(0xFF2563EB), size: 22),
+                child: Icon(Icons.leaderboard_rounded, color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB), size: 22),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Live Dual-Store Leaderboard',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                      ),
                     ),
                     Text(
                       'Real-time ranking movements across Top Free, Top Paid, and Top Grossing categories.',
-                      style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: isDark ? AppColors.ash : const Color(0xFF64748B),
+                      ),
                     ),
                   ],
                 ),
@@ -1480,15 +1518,16 @@ class _LandingPageViewState extends State<LandingPageView> {
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor: AppColors.signalBlue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: const StadiumBorder(), // REKKI 59px pill button
                 ),
               ),
             ],
           ),
-          const Divider(height: 28),
+          Divider(height: 28, color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
           // Live Embedded TopChartsLeaderboard!
           TopChartsLeaderboard(
             apps: _cachedApps,
@@ -1616,19 +1655,23 @@ class _LandingPageViewState extends State<LandingPageView> {
     required String ctaText,
     required VoidCallback onCta,
   }) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1638,18 +1681,31 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.12),
+                  color: isDark ? AppColors.iron : badgeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: badgeColor, size: 22),
+                child: Icon(icon, color: isDark ? AppColors.signalBlue : badgeColor, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
-                    Text(description, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? AppColors.ash : const Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1664,21 +1720,25 @@ class _LandingPageViewState extends State<LandingPageView> {
             children: features.map((f) {
               return Container(
                 constraints: const BoxConstraints(maxWidth: 540),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: isDark ? AppColors.iron : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, size: 14, color: badgeColor),
+                    Icon(Icons.check_circle, size: 14, color: isDark ? AppColors.signalBlue : badgeColor),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         f,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? AppColors.paper : const Color(0xFF334155),
+                        ),
                       ),
                     ),
                   ],
@@ -1691,12 +1751,13 @@ class _LandingPageViewState extends State<LandingPageView> {
             child: ElevatedButton.icon(
               onPressed: onCta,
               icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-              label: Text(ctaText, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+              label: Text(ctaText, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: badgeColor,
+                backgroundColor: isDark ? AppColors.signalBlue : badgeColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: const StadiumBorder(), // REKKI 59px pill button
               ),
             ),
           ),
@@ -1707,36 +1768,45 @@ class _LandingPageViewState extends State<LandingPageView> {
 
   // Mockup cards for interactive tabs
   Widget _buildOpportunityScoreMockup() {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
+        color: isDark ? AppColors.graphite : const Color(0xFFFFF7ED),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFED7AA)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFFED7AA)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEA580C),
+              color: isDark ? AppColors.iron : const Color(0xFFEA580C),
               borderRadius: BorderRadius.circular(12),
+              border: isDark ? Border.all(color: AppColors.signalBlue.withValues(alpha: 0.4)) : null,
             ),
-            child: const Column(
+            child: Column(
               children: [
-                Text('94/100', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-                Text('OPPORTUNITY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white70)),
+                Text('94/100', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: isDark ? AppColors.signalBlue : Colors.white)),
+                Text('OPPORTUNITY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: isDark ? AppColors.ash : Colors.white70)),
               ],
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('High-Velocity Micro-SaaS Niche Detected', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF9A3412))),
-                SizedBox(height: 4),
-                Text('Low competitor density • 68% dissatisfied user sentiment on market leaders • High organic search volume', style: TextStyle(fontSize: 12, color: Color(0xFFC2410C))),
+                Text(
+                  'High-Velocity Micro-SaaS Niche Detected',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: isDark ? AppColors.paper : const Color(0xFF9A3412)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Low competitor density • 68% dissatisfied user sentiment on market leaders • High organic search volume',
+                  style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFFC2410C)),
+                ),
               ],
             ),
           ),
@@ -1746,24 +1816,32 @@ class _LandingPageViewState extends State<LandingPageView> {
   }
 
   Widget _buildTeardownMockup() {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFECFDF5),
+        color: isDark ? AppColors.graphite : const Color(0xFFECFDF5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA7F3D0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFA7F3D0)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.link_rounded, color: Color(0xFF059669), size: 28),
-          SizedBox(width: 14),
+          Icon(Icons.link_rounded, color: isDark ? AppColors.signalBlue : const Color(0xFF059669), size: 28),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('https://apps.apple.com/app/id123456789', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF065F46))),
-                SizedBox(height: 4),
-                Text('Estimated 185K Monthly Active Users • \$42.5K/mo In-App Purchases • Flutter + RevenueCat Stack Detected', style: TextStyle(fontSize: 11.5, color: Color(0xFF047857))),
+                Text(
+                  'https://apps.apple.com/app/id123456789',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.paper : const Color(0xFF065F46)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Estimated 185K Monthly Active Users • \$42.5K/mo In-App Purchases • Flutter + RevenueCat Stack Detected',
+                  style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.ash : const Color(0xFF047857)),
+                ),
               ],
             ),
           ),
@@ -1773,24 +1851,32 @@ class _LandingPageViewState extends State<LandingPageView> {
   }
 
   Widget _buildCompetitorMatrixMockup() {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF),
+        color: isDark ? AppColors.graphite : const Color(0xFFF5F3FF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDD6FE)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFDDD6FE)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.hub_rounded, color: Color(0xFF7C3AED), size: 28),
-          SizedBox(width: 14),
+          Icon(Icons.hub_rounded, color: isDark ? AppColors.signalBlue : const Color(0xFF7C3AED), size: 28),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Head-to-Head Positioning Benchmark', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF5B21B6))),
-                SizedBox(height: 4),
-                Text('Competitors lag in dark mode & widget support • 42% user complaints cite subscription billing traps', style: TextStyle(fontSize: 11.5, color: Color(0xFF6D28D9))),
+                Text(
+                  'Head-to-Head Positioning Benchmark',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.paper : const Color(0xFF5B21B6)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Competitors lag in dark mode & widget support • 42% user complaints cite subscription billing traps',
+                  style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.ash : const Color(0xFF6D28D9)),
+                ),
               ],
             ),
           ),
@@ -1800,24 +1886,32 @@ class _LandingPageViewState extends State<LandingPageView> {
   }
 
   Widget _buildAiBlueprintMockup() {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF2F8),
+        color: isDark ? AppColors.graphite : const Color(0xFFFDF2F8),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFBCFE8)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFFBCFE8)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.terminal_rounded, color: Color(0xFFDB2777), size: 28),
-          SizedBox(width: 14),
+          Icon(Icons.terminal_rounded, color: isDark ? AppColors.signalBlue : const Color(0xFFDB2777), size: 28),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('CREATE TABLE user_telemetry ( id UUID PRIMARY KEY, app_id TEXT... );', style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF9D174D))),
-                SizedBox(height: 4),
-                Text('Production schema generated • 14-section architectural design ready to copy into your codebase', style: TextStyle(fontSize: 11.5, color: Color(0xFFBE185D))),
+                Text(
+                  'CREATE TABLE user_telemetry ( id UUID PRIMARY KEY, app_id TEXT... );',
+                  style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w700, fontSize: 12, color: isDark ? AppColors.paper : const Color(0xFF9D174D)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Production schema generated • 14-section architectural design ready to copy into your codebase',
+                  style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.ash : const Color(0xFFBE185D)),
+                ),
               ],
             ),
           ),
@@ -1830,25 +1924,38 @@ class _LandingPageViewState extends State<LandingPageView> {
   // 5. KEY PLATFORM METRICS
   // ==========================================
   Widget _buildKeyMetricsSection(bool isMobile) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F172A), // Dark slate
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.obsidian : const Color(0xFF0F172A),
+        border: Border.symmetric(horizontal: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFF1E293B))),
       ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1140),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'PROVEN AT SCALE',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF60A5FA), letterSpacing: 0.8),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.signalBlue : const Color(0xFF60A5FA),
+                  letterSpacing: 0.8,
+                ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Data That Drives Market Winners',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w500, // REKKI whisper-weight
+                  letterSpacing: -1.0,
+                  color: isDark ? AppColors.paper : Colors.white,
+                ),
               ),
               const SizedBox(height: 36),
               Wrap(
@@ -1856,10 +1963,10 @@ class _LandingPageViewState extends State<LandingPageView> {
                 runSpacing: 24,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildMetricStatCard('50M+', 'Store Signals Analyzed Daily', isMobile),
-                  _buildMetricStatCard('94.2%', 'AI Blueprint Precision Rate', isMobile),
-                  _buildMetricStatCard('14 Days', 'Avg. Time to Validate & Ship MVP', isMobile),
-                  _buildMetricStatCard('175+', 'Global App Store Regions Tracked', isMobile),
+                  _buildMetricStatCard('50M+', 'Store Signals Analyzed Daily', isMobile, isDark),
+                  _buildMetricStatCard('94.2%', 'AI Blueprint Precision Rate', isMobile, isDark),
+                  _buildMetricStatCard('14 Days', 'Avg. Time to Validate & Ship MVP', isMobile, isDark),
+                  _buildMetricStatCard('175+', 'Global App Store Regions Tracked', isMobile, isDark),
                 ],
               ),
             ],
@@ -1869,26 +1976,35 @@ class _LandingPageViewState extends State<LandingPageView> {
     );
   }
 
-  Widget _buildMetricStatCard(String value, String label, bool isMobile) {
+  Widget _buildMetricStatCard(String value, String label, bool isMobile, [bool isDark = false]) {
     return Container(
       width: isMobile ? 150 : 230,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: isDark ? AppColors.carbon : Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           Text(
             value,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF60A5FA)),
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.5,
+              color: isDark ? AppColors.signalBlue : const Color(0xFF60A5FA),
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF94A3B8)),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: isDark ? AppColors.ash : const Color(0xFF94A3B8),
+            ),
           ),
         ],
       ),
@@ -1899,6 +2015,8 @@ class _LandingPageViewState extends State<LandingPageView> {
   // 6. QUANTIFIED CASE STUDIES (MobileAction)
   // ==========================================
   Widget _buildQuantifiedCaseStudies(bool isMobile, bool isTablet) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 18 : 36, vertical: 48),
       child: Center(
@@ -1906,14 +2024,24 @@ class _LandingPageViewState extends State<LandingPageView> {
           constraints: const BoxConstraints(maxWidth: 1140),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'CUSTOMER SUCCESS STORIES',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF2563EB), letterSpacing: 0.8),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
+                  letterSpacing: 0.8,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Real Growth. Real Results.',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w500, // REKKI whisper-weight
+                  letterSpacing: -1.0,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                ),
               ),
               const SizedBox(height: 32),
               Wrap(
@@ -1964,26 +2092,58 @@ class _LandingPageViewState extends State<LandingPageView> {
       width: isMobile ? double.infinity : 340,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(stat, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF2563EB))),
-          Text(metric, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+          Text(
+            stat,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.5,
+              color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
+            ),
+          ),
+          Text(
+            metric,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.ash : const Color(0xFF64748B),
+            ),
+          ),
           const SizedBox(height: 14),
-          Text('"$quote"', style: TextStyle(fontSize: 13.5, fontStyle: FontStyle.italic, color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155), height: 1.45)),
+          Text(
+            '"$quote"',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontStyle: FontStyle.italic,
+              color: isDark ? AppColors.paper : const Color(0xFF334155),
+              height: 1.45,
+            ),
+          ),
           const SizedBox(height: 16),
-          Text(author, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+          Text(
+            author,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.ash : const Color(0xFF0F172A),
+            ),
+          ),
         ],
       ),
     );
@@ -1998,8 +2158,8 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        border: Border.symmetric(horizontal: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+        color: isDark ? AppColors.obsidian : const Color(0xFFF8FAFC),
+        border: Border.symmetric(horizontal: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0))),
       ),
       child: Center(
         child: ConstrainedBox(
@@ -2008,7 +2168,12 @@ class _LandingPageViewState extends State<LandingPageView> {
             children: [
               Text(
                 'ENTERPRISE ECOSYSTEM & SECURITY',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), letterSpacing: 0.8),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.ash : const Color(0xFF64748B),
+                  letterSpacing: 0.8,
+                ),
               ),
               const SizedBox(height: 16),
               Wrap(
@@ -2034,9 +2199,16 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF2563EB)),
+        Icon(icon, size: 18, color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB)),
         const SizedBox(width: 8),
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155))),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isDark ? AppColors.paper : const Color(0xFF334155),
+          ),
+        ),
       ],
     );
   }
@@ -2057,24 +2229,24 @@ class _LandingPageViewState extends State<LandingPageView> {
             children: [
               // Eyebrow Tag
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE)),
+                  color: isDark ? AppColors.iron : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+                  border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFBFDBFE)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bolt, size: 13, color: Color(0xFF2563EB)),
+                    Icon(Icons.bolt, size: 13, color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB)),
                     const SizedBox(width: 5),
                     Text(
                       'SIMPLE, TRANSPARENT TIERS',
                       style: TextStyle(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.8,
-                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+                        color: isDark ? AppColors.signalBlue : const Color(0xFF1D4ED8),
                       ),
                     ),
                   ],
@@ -2088,9 +2260,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: isMobile ? 24 : 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.8,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w500, // REKKI whisper-weight
+                  letterSpacing: -1.0,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
@@ -2103,7 +2275,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark ? AppColors.ash : const Color(0xFF64748B),
                     height: 1.45,
                   ),
                 ),
@@ -2115,9 +2287,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    color: isDark ? AppColors.graphite : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+                    border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -2172,13 +2344,13 @@ class _LandingPageViewState extends State<LandingPageView> {
                 spacing: 6,
                 runSpacing: 4,
                 children: [
-                  Icon(Icons.verified_user_outlined, size: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  Icon(Icons.verified_user_outlined, size: 14, color: isDark ? AppColors.ash : const Color(0xFF64748B)),
                   Text(
                     'Guaranteed 256-bit secure checkout. Cancel anytime with 1 click. No questions asked.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark ? AppColors.ash : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -2199,19 +2371,20 @@ class _LandingPageViewState extends State<LandingPageView> {
   }) {
     return InkWell(
       onTap: onSelect,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(59), // REKKI 59px pill
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? const Color(0xFF0F172A) : Colors.white)
+              ? (isDark ? AppColors.iron : Colors.white)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
+          borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+          border: isSelected && isDark ? Border.all(color: AppColors.rekkiBorderSubtle) : null,
+          boxShadow: isSelected && !isDark
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -2227,8 +2400,8 @@ class _LandingPageViewState extends State<LandingPageView> {
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
-                    ? (isDark ? Colors.white : const Color(0xFF0F172A))
-                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                    ? (isDark ? AppColors.paper : const Color(0xFF0F172A))
+                    : (isDark ? AppColors.ash : const Color(0xFF64748B)),
               ),
             ),
             if (badge != null) ...[
@@ -2236,16 +2409,16 @@ class _LandingPageViewState extends State<LandingPageView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
+                  color: isDark ? AppColors.carbon : const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
+                  border: Border.all(color: isDark ? AppColors.signalBlue.withValues(alpha: 0.5) : const Color(0xFFA7F3D0)),
                 ),
                 child: Text(
                   badge,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                    color: isDark ? AppColors.signalBlue : const Color(0xFF047857),
                   ),
                 ),
               ),
@@ -2263,16 +2436,18 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2281,8 +2456,8 @@ class _LandingPageViewState extends State<LandingPageView> {
             'Starter Free',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.paper : const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 4),
@@ -2290,7 +2465,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             'For casual exploring',
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: isDark ? AppColors.ash : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 16),
@@ -2302,8 +2477,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                 '\$0',
                 style: TextStyle(
                   fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(width: 4),
@@ -2311,7 +2487,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                 '/ forever',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark ? AppColors.ash : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -2322,16 +2498,16 @@ class _LandingPageViewState extends State<LandingPageView> {
               height: 44,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                color: isDark ? AppColors.iron : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+                border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
               ),
               child: Center(
                 child: Text(
                   'Current Plan',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark ? AppColors.ash : const Color(0xFF64748B),
                     fontSize: 13,
                   ),
                 ),
@@ -2344,15 +2520,15 @@ class _LandingPageViewState extends State<LandingPageView> {
               child: OutlinedButton(
                 onPressed: widget.onGetStarted ?? widget.onOpenAuthModal,
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  side: BorderSide(color: isDark ? AppColors.rekkiBorderInput : const Color(0xFFCBD5E1)),
+                  shape: const StadiumBorder(), // REKKI 59px pill button
                 ),
                 child: Text(
                   'Get Started Free',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                   ),
                 ),
               ),
@@ -2362,12 +2538,12 @@ class _LandingPageViewState extends State<LandingPageView> {
               onPressed: null,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 44),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: const StadiumBorder(), // REKKI 59px pill button
               ),
               child: const Text('Free Tier Included'),
             ),
           const SizedBox(height: 24),
-          Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          Divider(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
           _buildPricingFeatureRow('3 AI App Teardowns / day', isIncluded: true, isDark: isDark),
           _buildPricingFeatureRow('Opportunity Radar Signals', isIncluded: true, isDark: isDark),
@@ -2389,16 +2565,18 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2563EB), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.25 : 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: isDark ? AppColors.graphite : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: AppColors.signalBlue, width: isDark ? 1.5 : 2),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2409,19 +2587,19 @@ class _LandingPageViewState extends State<LandingPageView> {
             spacing: 8,
             runSpacing: 4,
             children: [
-              const Text(
+              Text(
                 'Pro Builder',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF2563EB),
+                  color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.signalBlue,
+                  borderRadius: BorderRadius.circular(59), // REKKI 59px pill
                 ),
                 child: Text(
                   isCurrent ? 'ACTIVE PLAN' : 'MOST POPULAR',
@@ -2440,7 +2618,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             'For indie hackers & builders',
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: isDark ? AppColors.ash : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 16),
@@ -2452,8 +2630,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                 price,
                 style: TextStyle(
                   fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(width: 4),
@@ -2461,7 +2640,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                 '/ month',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark ? AppColors.ash : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -2470,7 +2649,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             billingNote,
             style: TextStyle(
               fontSize: 11,
-              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+              color: isDark ? AppColors.ash : const Color(0xFF94A3B8),
             ),
           ),
           const SizedBox(height: 18),
@@ -2483,21 +2662,21 @@ class _LandingPageViewState extends State<LandingPageView> {
                   height: 44,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.4)),
+                    color: isDark ? AppColors.iron : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(59), // REKKI 59px pill
+                    border: Border.all(color: AppColors.signalBlue.withValues(alpha: 0.5)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.check_circle, size: 18, color: Color(0xFF2563EB)),
-                      SizedBox(width: 8),
+                      Icon(Icons.check_circle, size: 18, color: AppColors.signalBlue),
+                      const SizedBox(width: 8),
                       Text(
                         'Current Active Plan',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF2563EB),
+                          color: AppColors.signalBlue,
                         ),
                       ),
                     ],
@@ -2507,13 +2686,13 @@ class _LandingPageViewState extends State<LandingPageView> {
                 InkWell(
                   onTap: () => widget.subscriptionService.launchCustomerPortal(),
                   borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     child: Text(
                       'Manage billing & payment methods →',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF60A5FA),
+                        color: isDark ? AppColors.signalBlue : const Color(0xFF60A5FA),
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.w500,
                       ),
@@ -2529,14 +2708,15 @@ class _LandingPageViewState extends State<LandingPageView> {
               label: const Text('Upgrade to Pro Builder'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 44),
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: AppColors.signalBlue,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+                shape: const StadiumBorder(), // REKKI 59px pill button
               ),
             ),
 
           const SizedBox(height: 16),
-          Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          Divider(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
           _buildPricingFeatureRow('Unlimited AI App Teardowns', isIncluded: true, isHighlight: true, isDark: isDark),
           _buildPricingFeatureRow('Complete 14-Section Build Blueprints', isIncluded: true, isHighlight: true, isDark: isDark),
@@ -2557,16 +2737,18 @@ class _LandingPageViewState extends State<LandingPageView> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDark ? AppColors.carbon : Colors.white,
+        borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
+        boxShadow: isDark
+            ? [] // REKKI zero drop shadows
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2575,8 +2757,8 @@ class _LandingPageViewState extends State<LandingPageView> {
             'Agency & Team',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.paper : const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 4),
@@ -2584,7 +2766,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             'For studios & development teams',
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: isDark ? AppColors.ash : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 16),
@@ -2596,8 +2778,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                 price,
                 style: TextStyle(
                   fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(width: 4),
@@ -2605,7 +2788,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                 '/ month',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark ? AppColors.ash : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -2614,7 +2797,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             billingNote,
             style: TextStyle(
               fontSize: 11,
-              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+              color: isDark ? AppColors.ash : const Color(0xFF94A3B8),
             ),
           ),
           const SizedBox(height: 18),
@@ -2627,20 +2810,20 @@ class _LandingPageViewState extends State<LandingPageView> {
             },
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 44),
-              side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              side: BorderSide(color: isDark ? AppColors.rekkiBorderInput : const Color(0xFFCBD5E1)),
+              shape: const StadiumBorder(), // REKKI 59px pill button
             ),
             child: Text(
               'Contact for Custom Seats',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: isDark ? AppColors.paper : const Color(0xFF0F172A),
               ),
             ),
           ),
           const SizedBox(height: 24),
-          Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          Divider(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
           _buildPricingFeatureRow('Everything in Pro Builder', isIncluded: true, isDark: isDark),
           _buildPricingFeatureRow('5 Team Member Seats', isIncluded: true, isDark: isDark),
@@ -2668,8 +2851,8 @@ class _LandingPageViewState extends State<LandingPageView> {
             isIncluded ? Icons.check_circle : Icons.remove_circle_outline,
             size: 16,
             color: isIncluded
-                ? (isHighlight ? const Color(0xFF2563EB) : const Color(0xFF10B981))
-                : (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8)),
+                ? (isHighlight ? AppColors.signalBlue : const Color(0xFF10B981))
+                : (isDark ? AppColors.iron : const Color(0xFF94A3B8)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -2679,8 +2862,8 @@ class _LandingPageViewState extends State<LandingPageView> {
                 fontSize: 12.5,
                 fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
                 color: isIncluded
-                    ? (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B))
-                    : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                    ? (isDark ? AppColors.paper : const Color(0xFF1E293B))
+                    : (isDark ? AppColors.ash : const Color(0xFF94A3B8)),
               ),
             ),
           ),
@@ -2693,6 +2876,8 @@ class _LandingPageViewState extends State<LandingPageView> {
   // 9. PRE-FOOTER CTA BANNER
   // ==========================================
   Widget _buildPreFooterCtaBanner(bool isMobile) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: isMobile ? 18 : 36, vertical: 36),
       child: Center(
@@ -2701,39 +2886,49 @@ class _LandingPageViewState extends State<LandingPageView> {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 48, vertical: isMobile ? 36 : 48),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1D4ED8), Color(0xFF1E40AF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              color: isDark ? AppColors.carbon : null,
+              gradient: isDark
+                  ? null
+                  : const LinearGradient(
+                      colors: [Color(0xFF1D4ED8), Color(0xFF1E40AF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+              borderRadius: BorderRadius.circular(16), // REKKI 16px radius
+              border: isDark ? Border.all(color: AppColors.rekkiBorderSubtle) : null,
+              boxShadow: isDark
+                  ? [] // REKKI zero drop shadows
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
             ),
             child: Column(
               children: [
-                const Text(
+                Text(
                   'Ready to Build Apps That Climb the Charts?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
+                    fontWeight: FontWeight.w500, // REKKI whisper-weight
+                    color: isDark ? AppColors.paper : Colors.white,
+                    letterSpacing: -1.0,
                   ),
                 ),
                 const SizedBox(height: 12),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
-                  child: const Text(
+                  child: Text(
                     'Join thousands of developers and growth teams using AppRadar to find market gaps, analyze competitors, and build market-winning apps.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14.5, color: Color(0xFFDBEAFE), height: 1.5),
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      color: isDark ? AppColors.ash : const Color(0xFFDBEAFE),
+                      height: 1.5,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -2758,25 +2953,32 @@ class _LandingPageViewState extends State<LandingPageView> {
                       ),
                       label: const Text(
                         'Get Started Free',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF1D4ED8),
+                        backgroundColor: isDark ? AppColors.signalBlue : Colors.white,
+                        foregroundColor: isDark ? Colors.white : const Color(0xFF1D4ED8),
+                        elevation: 0,
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        elevation: 3,
+                        shape: const StadiumBorder(), // REKKI 59px pill button
                       ),
                     ),
                     if (!widget.authService.isAuthenticated)
                       OutlinedButton.icon(
                         onPressed: widget.onOpenAuthModal,
-                        icon: const Icon(Icons.login_rounded, size: 18, color: Colors.white),
-                        label: const Text('Sign In to Account', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                        icon: Icon(Icons.login_rounded, size: 18, color: isDark ? AppColors.paper : Colors.white),
+                        label: Text(
+                          'Sign In to Account',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
+                            color: isDark ? AppColors.paper : Colors.white,
+                          ),
+                        ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white, width: 1.5),
+                          side: BorderSide(color: isDark ? AppColors.rekkiBorderInput : Colors.white, width: 1.5),
                           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                          shape: const StadiumBorder(), // REKKI 59px pill button
                         ),
                       ),
                   ],
@@ -2793,8 +2995,13 @@ class _LandingPageViewState extends State<LandingPageView> {
   // 10. FOOTER
   // ==========================================
   Widget _buildFooter(bool isMobile) {
+    final isDark = ThemeService.instance.isDark;
+
     return Container(
-      color: const Color(0xFF0F172A),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.obsidian : const Color(0xFF0F172A),
+        border: Border(top: BorderSide(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFF334155))),
+      ),
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 48, vertical: 48),
       child: Center(
         child: ConstrainedBox(
@@ -2809,13 +3016,20 @@ class _LandingPageViewState extends State<LandingPageView> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB),
+                          color: AppColors.signalBlue,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(Icons.radar, color: Colors.white, size: 18),
                       ),
                       const SizedBox(width: 10),
-                      const Text('AppRadar', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.white)),
+                      Text(
+                        'AppRadar',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          color: isDark ? AppColors.paper : Colors.white,
+                        ),
+                      ),
                     ],
                   ),
                   TextButton.icon(
@@ -2828,26 +3042,30 @@ class _LandingPageViewState extends State<LandingPageView> {
                         widget.onOpenAuthModal();
                       }
                     },
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_forward_rounded,
                       size: 14,
-                      color: Color(0xFF60A5FA),
+                      color: isDark ? AppColors.signalBlue : const Color(0xFF60A5FA),
                     ),
-                    label: const Text(
+                    label: Text(
                       'Get Started Free',
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF60A5FA)),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.signalBlue : const Color(0xFF60A5FA),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const Divider(color: Color(0xFF334155), height: 36),
+              Divider(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFF334155), height: 36),
               if (isMobile)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '© 2026 AppRadar Inc. All rights reserved.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.fog : const Color(0xFF64748B)),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -2855,15 +3073,15 @@ class _LandingPageViewState extends State<LandingPageView> {
                       children: [
                         InkWell(
                           onTap: () {},
-                          child: const Text('Privacy Policy', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Privacy Policy', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
                           onTap: () {},
-                          child: const Text('Terms of Service', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Terms of Service', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
                           onTap: () {},
-                          child: const Text('Security', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Security', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                       ],
                     ),
@@ -2873,24 +3091,24 @@ class _LandingPageViewState extends State<LandingPageView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '© 2026 AppRadar Inc. All rights reserved.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.fog : const Color(0xFF64748B)),
                     ),
                     Wrap(
                       spacing: 16,
                       children: [
                         InkWell(
                           onTap: () {},
-                          child: const Text('Privacy Policy', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Privacy Policy', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
                           onTap: () {},
-                          child: const Text('Terms of Service', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Terms of Service', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
                           onTap: () {},
-                          child: const Text('Security', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                          child: Text('Security', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                       ],
                     ),

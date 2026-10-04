@@ -365,8 +365,20 @@ class _AppShellState extends State<AppShell> {
   }
 
   PreferredSizeWidget _buildAppBar(bool isDesktop) {
+    final isDark = ThemeService.instance.isDark;
+
     return AppBar(
-      titleSpacing: isDesktop ? 24 : 16,
+      backgroundColor: isDark ? AppColors.obsidian : AppColors.surface,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleSpacing: isDesktop ? 24 : 0,
+      shape: Border(
+        bottom: BorderSide(
+          color: isDark ? AppColors.rekkiBorderSubtle : AppColors.border,
+          width: 1,
+        ),
+      ),
       leading: isDesktop ? null : Builder(
         builder: (ctx) => IconButton(
           icon: const Icon(Icons.menu),
@@ -374,11 +386,12 @@ class _AppShellState extends State<AppShell> {
         ),
       ),
       title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.signalBlue,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.radar, color: Colors.white, size: 20),
@@ -392,10 +405,10 @@ class _AppShellState extends State<AppShell> {
                 Text(
                   'AppRadar',
                   style: TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 18,
-                    letterSpacing: -0.5,
-                    color: AppColors.currentTextPrimary,
+                    letterSpacing: -0.6,
+                    color: isDark ? AppColors.paper : AppColors.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -404,7 +417,7 @@ class _AppShellState extends State<AppShell> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.currentTextMuted,
+                    color: isDark ? AppColors.smoke : AppColors.textMuted,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -417,36 +430,36 @@ class _AppShellState extends State<AppShell> {
         if (isDesktop) ...[
           TextButton.icon(
             onPressed: () => setState(() => _showLandingPage = true),
-            icon: const Icon(Icons.home_outlined, size: 15, color: AppColors.primary),
-            label: const Text('Front Page', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+            icon: const Icon(Icons.home_outlined, size: 15, color: AppColors.signalBlue),
+            label: const Text('Front Page', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.signalBlue)),
             style: TextButton.styleFrom(
-              backgroundColor: AppColors.currentPrimaryLight,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              backgroundColor: isDark ? AppColors.iron : AppColors.primaryLight,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              shape: const StadiumBorder(), // REKKI --radius-buttons: 59px
             ),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.currentSurfaceSecondary,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.currentBorder),
+              color: isDark ? AppColors.iron : AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(59), // REKKI pill switch
+              border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : AppColors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.public, size: 14, color: AppColors.primary),
+                const Icon(Icons.public, size: 14, color: AppColors.signalBlue),
                 const SizedBox(width: 6),
                 Text(
                   'USA • Sep 19, 2026',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.currentTextSecondary),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.ash : AppColors.textSecondary),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 16),
         ],
-        // Theme Mode Toggle Button (Desktop shows in header; Mobile has dedicated toggle in Drawer & Settings)
+        // Theme Mode Toggle Button
         if (isDesktop)
           IconButton(
             tooltip: ThemeService.instance.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
@@ -488,7 +501,7 @@ class _AppShellState extends State<AppShell> {
             icon: Icon(Icons.install_desktop_rounded, color: AppColors.currentTextSecondary, size: 20),
             onPressed: () => PwaInstallModal.show(context),
           ),
-        const SizedBox(width: 8),
+        SizedBox(width: isDesktop ? 8 : 4),
         // Plan Badge & Upgrade Action
         if (widget.subscriptionService.isFree) ...[
           OutlinedButton.icon(
@@ -501,19 +514,19 @@ class _AppShellState extends State<AppShell> {
                 authService: widget.authService,
               ),
             ),
-            icon: const Icon(Icons.bolt, size: 15, color: AppColors.aiPurple),
-            label: const Text('Upgrade Pro', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.aiPurple)),
+            icon: const Icon(Icons.bolt, size: 14, color: AppColors.aiPurple),
+            label: Text(isDesktop ? 'Upgrade Pro' : 'Pro', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.aiPurple)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.aiPurple.withValues(alpha: 0.4)),
               backgroundColor: ThemeService.instance.isDark ? const Color(0xFF2E1065) : AppColors.aiPurpleLight,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 10 : 8, vertical: 6),
+              shape: const StadiumBorder(),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: isDesktop ? 8 : 4),
         ],
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: EdgeInsets.only(right: isDesktop ? 16 : 8),
           child: _buildAuthHeaderButton(isDesktop),
         ),
       ],
@@ -533,10 +546,10 @@ class _AppShellState extends State<AppShell> {
         icon: const Icon(Icons.login, size: 16),
         label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.signalBlue,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 16 : 10, vertical: 8),
+          shape: const StadiumBorder(), // REKKI --radius-buttons: 59px
           elevation: 0,
         ),
       );
@@ -745,6 +758,8 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildNavContent({bool isDrawer = false}) {
+    final isDark = ThemeService.instance.isDark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -756,7 +771,7 @@ class _AppShellState extends State<AppShell> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.currentPrimaryLight,
+                  color: isDark ? AppColors.iron : AppColors.currentPrimaryLight,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -764,7 +779,7 @@ class _AppShellState extends State<AppShell> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+                    color: AppColors.signalBlue,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -775,7 +790,7 @@ class _AppShellState extends State<AppShell> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.currentTextMuted,
+                  color: isDark ? AppColors.smoke : AppColors.currentTextMuted,
                 ),
               ),
               const SizedBox(height: 12),
@@ -784,17 +799,17 @@ class _AppShellState extends State<AppShell> {
                   if (isDrawer) Navigator.pop(context);
                   setState(() => _showLandingPage = true);
                 },
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(59),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.currentPrimaryLight,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                    color: isDark ? AppColors.iron : AppColors.currentPrimaryLight,
+                    borderRadius: BorderRadius.circular(59),
+                    border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : AppColors.primary.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.public, size: 16, color: AppColors.primary),
+                      Icon(Icons.public, size: 16, color: AppColors.signalBlue),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -802,11 +817,11 @@ class _AppShellState extends State<AppShell> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                            color: AppColors.signalBlue,
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.primary),
+                      Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.signalBlue),
                     ],
                   ),
                 ),
@@ -829,19 +844,23 @@ class _AppShellState extends State<AppShell> {
                 child: ListTile(
                   dense: true,
                   selected: isSelected,
-                  selectedTileColor: AppColors.currentPrimaryLight,
+                  selectedTileColor: isDark ? AppColors.iron : AppColors.currentPrimaryLight,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   leading: Icon(
                     _navIcons[index],
                     size: 20,
-                    color: isSelected ? AppColors.primary : AppColors.currentTextSecondary,
+                    color: isSelected
+                        ? AppColors.signalBlue
+                        : (isDark ? AppColors.smoke : AppColors.currentTextSecondary),
                   ),
                   title: Text(
                     _navTitles[index],
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.currentTextPrimary,
+                      color: isSelected
+                          ? (isDark ? AppColors.paper : AppColors.primary)
+                          : (isDark ? AppColors.ash : AppColors.currentTextPrimary),
                     ),
                   ),
                   onTap: () {

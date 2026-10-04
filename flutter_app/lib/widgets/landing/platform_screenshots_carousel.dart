@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_service.dart';
 
 /// Interactive Auto-Moving Screenshot Showcase Carousel for AppRadar Front Page.
@@ -145,10 +146,10 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
           vertical: isMobile ? 32 : 56,
         ),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF080D1A) : const Color(0xFFF8FAFC),
+          color: isDark ? AppColors.obsidian : const Color(0xFFF8FAFC),
           border: Border.symmetric(
             horizontal: BorderSide(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+              color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0),
               width: 1,
             ),
           ),
@@ -163,24 +164,24 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(20),
+                    color: isDark ? AppColors.graphite : const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(59),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF4338CA) : const Color(0xFFC7D2FE),
+                      color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFC7D2FE),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.slideshow_rounded, size: 14, color: Color(0xFF4F46E5)),
+                      Icon(Icons.slideshow_rounded, size: 14, color: isDark ? AppColors.signalBlue : const Color(0xFF4F46E5)),
                       const SizedBox(width: 6),
                       Text(
                         'INTERACTIVE APPRADAR PLATFORM SHOWCASE',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.8,
-                          color: isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA),
+                          color: isDark ? AppColors.paper : const Color(0xFF4338CA),
                         ),
                       ),
                     ],
@@ -194,9 +195,9 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: isMobile ? 24 : 32,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: -0.8,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: isDark ? AppColors.paper : const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -210,7 +211,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                     style: TextStyle(
                       fontSize: 14,
                       height: 1.5,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark ? AppColors.ash : const Color(0xFF64748B),
                     ),
                   ),
                 ),
@@ -230,29 +231,29 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                           avatar: Icon(
                             item.icon,
                             size: 15,
-                            color: isSelected ? Colors.white : item.accentColor,
+                            color: isSelected ? Colors.white : (isDark ? AppColors.steel : item.accentColor),
                           ),
                           label: Text(
                             item.category,
                             style: TextStyle(
                               fontSize: 12.5,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                               color: isSelected
                                   ? Colors.white
-                                  : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                                  : (isDark ? AppColors.ash : const Color(0xFF334155)),
                             ),
                           ),
                           selected: isSelected,
                           onSelected: (_) => _goToPage(index),
-                          selectedColor: const Color(0xFF2563EB),
-                          backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+                          selectedColor: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
+                          backgroundColor: isDark ? AppColors.carbon : Colors.white,
                           side: BorderSide(
                             color: isSelected
-                                ? const Color(0xFF2563EB)
-                                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                ? (isDark ? AppColors.signalBlue : const Color(0xFF2563EB))
+                                : (isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
                           ),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(59)),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         ),
                       );
                     }),
@@ -263,32 +264,34 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                 // The Moving Slide Viewport Container
                 Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    color: isDark ? AppColors.carbon : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                      width: 1.5,
+                      color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0),
+                      width: 1,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
-                        blurRadius: 28,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
+                    boxShadow: isDark
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 28,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     child: Column(
                       children: [
                         // Browser Chrome Header Window Bar
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF090D16) : const Color(0xFFF1F5F9),
+                            color: isDark ? AppColors.graphite : const Color(0xFFF1F5F9),
                             border: Border(
                               bottom: BorderSide(
-                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                                color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0),
                               ),
                             ),
                           ),
@@ -311,10 +314,10 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF111827) : Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: isDark ? AppColors.iron : Colors.white,
+                                    borderRadius: BorderRadius.circular(59),
                                     border: Border.all(
-                                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
+                                      color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1),
                                     ),
                                   ),
                                   child: Row(
@@ -326,8 +329,8 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                           _slides[_currentPage].url,
                                           style: TextStyle(
                                             fontSize: 11.5,
-                                            fontWeight: FontWeight.w600,
-                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? AppColors.steel : const Color(0xFF64748B),
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -343,7 +346,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(59),
                                 ),
                                 child: const Row(
                                   children: [
@@ -351,7 +354,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                     SizedBox(width: 5),
                                     Text(
                                       'LIVE MATRIX',
-                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF10B981)),
                                     ),
                                   ],
                                 ),
@@ -388,10 +391,10 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                     icon: const Icon(Icons.chevron_left_rounded, size: 28),
                                     style: IconButton.styleFrom(
                                       backgroundColor: isDark
-                                          ? const Color(0xFF1E293B).withValues(alpha: 0.85)
+                                          ? AppColors.iron.withValues(alpha: 0.85)
                                           : Colors.white.withValues(alpha: 0.9),
-                                      foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      elevation: 3,
+                                      foregroundColor: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                                      elevation: 0,
                                     ),
                                   ),
                                 ),
@@ -411,10 +414,10 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                                     icon: const Icon(Icons.chevron_right_rounded, size: 28),
                                     style: IconButton.styleFrom(
                                       backgroundColor: isDark
-                                          ? const Color(0xFF1E293B).withValues(alpha: 0.85)
+                                          ? AppColors.iron.withValues(alpha: 0.85)
                                           : Colors.white.withValues(alpha: 0.9),
-                                      foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      elevation: 3,
+                                      foregroundColor: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                                      elevation: 0,
                                     ),
                                   ),
                                 ),
@@ -442,8 +445,8 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                         height: 8,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFF2563EB)
-                              : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                              ? (isDark ? AppColors.signalBlue : const Color(0xFF2563EB))
+                              : (isDark ? AppColors.iron : const Color(0xFFCBD5E1)),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -519,14 +522,14 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                 icon: const Icon(Icons.lock_open_rounded, size: 14),
                 label: Text(
                   isMobile ? 'Get Started' : 'Unlock in Console',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor: isDark ? AppColors.signalBlue : const Color(0xFF2563EB),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 1,
+                  shape: const StadiumBorder(),
+                  elevation: 0,
                 ),
               ),
             ],
@@ -563,15 +566,15 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              _metricChip('Active Apps', '2,840,192', '+1,420/d', const Color(0xFF2563EB), isDark),
+              _metricChip('Active Apps', '2,840,192', '+1,420/d', isDark ? AppColors.signalBlue : const Color(0xFF2563EB), isDark),
               const SizedBox(width: 8),
               _metricChip('Store Feeds', 'US • UK • CA', 'Live Polling', const Color(0xFF10B981), isDark),
               if (!isMobile) ...[
@@ -596,9 +599,9 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
@@ -611,19 +614,19 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(59),
                       border: Border.all(color: const Color(0xFF10B981)),
                     ),
-                    child: const Text('OPPORTUNITY: 94/100', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF10B981), fontSize: 13)),
+                    child: const Text('OPPORTUNITY: 94/100', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF10B981), fontSize: 13)),
                   ),
                   const SizedBox(width: 12),
-                  Text('Prime Blue Ocean Window', style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13)),
+                  Text('Prime Blue Ocean Window', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? AppColors.paper : const Color(0xFF0F172A), fontSize: 13)),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: const Color(0xFF2563EB).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
-                child: const Text('Willingness-to-Pay: 96%', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF2563EB), fontSize: 11)),
+                decoration: BoxDecoration(color: (isDark ? AppColors.signalBlue : const Color(0xFF2563EB)).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(59)),
+                child: Text('Willingness-to-Pay: 96%', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB), fontSize: 11)),
               ),
             ],
           ),
@@ -631,9 +634,9 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+              color: isDark ? AppColors.graphite : Colors.white,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+              border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
             ),
             child: Row(
               children: [
@@ -642,7 +645,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                 Expanded(
                   child: Text(
                     'High unsatisfied demand detected in offline-first voice recording with automatic markdown summary export. Incumbents have an average rating of 3.8★ due to sync glitches.',
-                    style: TextStyle(fontSize: 12.5, height: 1.45, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                    style: TextStyle(fontSize: 12.5, height: 1.45, color: isDark ? AppColors.ash : const Color(0xFF334155)),
                   ),
                 ),
               ],
@@ -658,18 +661,18 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+              color: isDark ? AppColors.graphite : Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+              border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1)),
             ),
             child: Row(
               children: [
@@ -685,7 +688,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: const Color(0xFF8B5CF6), borderRadius: BorderRadius.circular(4)),
-                  child: const Text('DECOMPILED', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                  child: const Text('DECOMPILED', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -696,7 +699,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
             runSpacing: 8,
             children: [
               _tagPill('Paywall: Hard Onboarding (\$9.99/wk)', const Color(0xFFEF4444)),
-              _tagPill('SDK: RevenueCat + Supabase', const Color(0xFF2563EB)),
+              _tagPill('SDK: RevenueCat + Supabase', isDark ? AppColors.signalBlue : const Color(0xFF2563EB)),
               _tagPill('AI Engine: GPT-4o Mini API', const Color(0xFF10B981)),
               _tagPill('Top Complaint: Auto-Renewal Confusion', const Color(0xFFF59E0B)),
             ],
@@ -711,9 +714,9 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
@@ -728,7 +731,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+              color: isDark ? AppColors.graphite : Colors.white,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
             ),
@@ -755,20 +758,20 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('FOCUS: AI Note Taker vs 3 Top Rivals', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              Text('FOCUS: AI Note Taker vs 3 Top Rivals', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.paper : const Color(0xFF0F172A))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFF06B6D4).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
-                child: const Text('4 Rivals Benchmarked', style: TextStyle(color: Color(0xFF06B6D4), fontSize: 11, fontWeight: FontWeight.w700)),
+                decoration: BoxDecoration(color: const Color(0xFF06B6D4).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(59)),
+                child: const Text('4 Rivals Benchmarked', style: TextStyle(color: Color(0xFF06B6D4), fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -788,9 +791,9 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
+        color: isDark ? AppColors.carbon : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -798,16 +801,17 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('14-Section Production Blueprint (Ready to Build)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-              const Text('Synthesized in 1.4s', style: TextStyle(color: Color(0xFFEC4899), fontWeight: FontWeight.w700, fontSize: 11)),
+              Text('14-Section Production Blueprint (Ready to Build)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.paper : const Color(0xFF0F172A))),
+              const Text('Synthesized in 1.4s', style: TextStyle(color: Color(0xFFEC4899), fontWeight: FontWeight.w600, fontSize: 11)),
             ],
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B0F19) : const Color(0xFF1E293B),
+              color: isDark ? AppColors.graphite : const Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
             ),
             child: const Text(
               'CREATE TABLE user_notes (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID REFERENCES auth.users,\n  markdown_body TEXT NOT NULL,\n  ai_summary TEXT,\n  created_at TIMESTAMPTZ DEFAULT now()\n);',
@@ -825,16 +829,16 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+          color: isDark ? AppColors.graphite : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+          border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFE2E8F0)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 10.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+            Text(label, style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.steel : const Color(0xFF64748B))),
             const SizedBox(height: 2),
-            Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
+            Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
             Text(sub, style: const TextStyle(fontSize: 9.5, color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
           ],
         ),
@@ -846,25 +850,26 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+        color: isDark ? AppColors.graphite : Colors.white,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
       ),
       child: Row(
         children: [
-          Text('#$rank', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFF2563EB))),
+          Text('#$rank', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: isDark ? AppColors.signalBlue : const Color(0xFF2563EB))),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-                Text(cat, style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8))),
+                Text(title, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppColors.paper : const Color(0xFF0F172A))),
+                Text(cat, style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.steel : const Color(0xFF94A3B8))),
               ],
             ),
           ),
-          Text(mrr, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+          Text(mrr, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.paper : const Color(0xFF0F172A))),
           const SizedBox(width: 8),
-          Text(change, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF10B981))),
+          Text(change, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF10B981))),
         ],
       ),
     );
@@ -878,7 +883,7 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 
@@ -886,17 +891,18 @@ class _PlatformScreenshotsCarouselState extends State<PlatformScreenshotsCarouse
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+        color: isDark ? AppColors.graphite : Colors.white,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
       ),
       child: Row(
         children: [
-          Expanded(child: Text(name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: isDark ? Colors.white : const Color(0xFF0F172A)))),
-          Text(pricing, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11)),
+          Expanded(child: Text(name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: isDark ? AppColors.paper : const Color(0xFF0F172A)))),
+          Text(pricing, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11)),
           const SizedBox(width: 12),
-          Text(feature, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: tagColor)),
+          Text(feature, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: tagColor)),
           const SizedBox(width: 12),
-          Text(rating, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Color(0xFFF59E0B))),
+          Text(rating, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Color(0xFFF59E0B))),
         ],
       ),
     );

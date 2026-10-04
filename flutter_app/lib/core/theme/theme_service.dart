@@ -9,7 +9,7 @@ import 'theme_storage.dart';
 class ThemeService extends ChangeNotifier {
   static final ThemeService instance = ThemeService._internal();
 
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.dark;
 
   ThemeService._internal() {
     _initTheme();
@@ -17,12 +17,13 @@ class ThemeService extends ChangeNotifier {
 
   void _initTheme() {
     final stored = getStoredThemeMode();
-    if (stored == 'dark') {
-      _themeMode = ThemeMode.dark;
-      AppColors.isDark = true;
-    } else {
+    if (stored == 'light') {
       _themeMode = ThemeMode.light;
       AppColors.isDark = false;
+    } else {
+      // REKKI specification: Default to darkroom mission control
+      _themeMode = ThemeMode.dark;
+      AppColors.isDark = true;
     }
   }
 
