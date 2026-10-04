@@ -1,0 +1,580 @@
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>AppRadar: 0 থেকে প্রথম ১০০ জন ইউজার ও সেল পাওয়ার সম্পূর্ণ প্লেবুক</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm 14mm 12mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Hind Siliguri', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    line-height: 1.6;
+    font-size: 13.5px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cover-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    color: #ffffff;
+    padding: 26px 24px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+
+  .badge-tag {
+    display: inline-block;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .cover-title {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    color: #ffffff;
+  }
+
+  .cover-subtitle {
+    font-size: 14px;
+    color: #cbd5e1;
+    font-weight: 400;
+    max-width: 90%;
+  }
+
+  .meta-bar {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .section {
+    margin-bottom: 22px;
+    page-break-inside: avoid;
+  }
+
+  .section-break {
+    page-break-before: always;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .step-num {
+    background: #4f46e5;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .step-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .step-days {
+    margin-left: auto;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  p {
+    margin-bottom: 9px;
+  }
+
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+
+  .card-highlight {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    border-color: #bfdbfe #bfdbfe #bfdbfe #3b82f6;
+  }
+
+  .card-warning {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-color: #fde68a #fde68a #fde68a #f59e0b;
+  }
+
+  .card-success {
+    background: #ecfdf5;
+    border-left: 4px solid #10b981;
+    border-color: #a7f3d0 #a7f3d0 #a7f3d0 #10b981;
+  }
+
+  .card-title {
+    font-weight: 700;
+    font-size: 13.5px;
+    margin-bottom: 6px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .checklist {
+    list-style: none;
+    margin: 8px 0;
+  }
+
+  .checklist li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+
+  .checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 4px;
+    top: -1px;
+    color: #4f46e5;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .template-box {
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    position: relative;
+    border: 1px solid #334155;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .template-header {
+    background: #1e293b;
+    color: #38bdf8;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .action-callout {
+    font-weight: 600;
+    color: #4338ca;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px 0;
+    font-size: 12.5px;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+
+  .badge-free {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+
+  .badge-pro {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+
+  .footer-note {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 11.5px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- COVER HEADER -->
+  <div class="cover-header">
+    <div class="badge-tag">Zero to Hero Playbook</div>
+    <h1 class="cover-title">AppRadar: 0 থেকে প্রথম ১০০ ইউজার ও সেল পাওয়ার সম্পূর্ণ গাইড</h1>
+    <p class="cover-subtitle">কোনো মার্কেটিং জ্ঞান বা অভিজ্ঞতা ছাড়াই প্রতিদিন ধাপ ধরে এক্সিকিউট করার রেডিমেড গাইড এবং কপি-পেস্ট টেমপ্লেট।</p>
+    <div class="meta-bar">
+      <span>প্রোডাক্ট: AppRadar (ASO & Competitor Intelligence)</span>
+      <span>টার্গেট: Indie Devs, Mobile Studios & ASO Agencies</span>
+      <span>ভার্সন: ১.০ (লাইভ লঞ্চ এডিশন)</span>
+    </div>
+  </div>
+
+  <!-- INTRODUCTION / MINDSET -->
+  <div class="section">
+    <div class="card card-highlight">
+      <div class="card-title">💡 শুরু করার আগে এই ১টি কথা মাথায় রাখুন:</div>
+      <p>মার্কেটিং কোনো জটিল বিজ্ঞান নয়। এটি কেবল <strong>"সঠিক সমস্যার সমাধান সঠিক মানুষের সামনে তুলে ধরা"</strong>। Sensor Tower বা MobileAction প্রতি মাসে $২০০-$৫০০ চার্জ করে। আপনার AppRadar একই কাজ খুব দ্রুত এবং একদম সাশ্রয়ী খরচে করে দেয়। আপনার কাজ শুধু এই কথাটি ডেভেলপারদের জানানো। আপনাকে কোনো কোর্স করতে হবে না, শুধু নিচের ধাপগুলো হুবহু অনুসরণ করুন।</p>
+    </div>
+  </div>
+
+  <!-- STEP 0 -->
+  <div class="section">
+    <div class="step-header">
+      <span class="step-num">ধাপ ০</span>
+      <span class="step-title">লাইভ লঞ্চের টেকনিক্যাল চেকলিস্ট (শুরুর আগেই যা রেডি রাখবেন)</span>
+      <span class="step-days">Day 0 (১ দিন)</span>
+    </div>
+    <p>মার্কেটিং লিংক শেয়ার করার আগে এই ৪টি জিনিস এক পলকে চেক করে নিন:</p>
+    <ul class="checklist">
+      <li><strong>লাইভ লিংক সচল কিনা:</strong> আপনার ওয়েবসাইট ব্রাউজারে সুন্দরভাবে লোড হচ্ছে (মোবাইল ও ডেসকটপ দুই জায়গায়ই)।</li>
+      <li><strong>সাইনআপ ও লগইন টেস্ট:</strong> নতুন একটি ব্রাউজারে ইনকগনিটো মোডে গিয়ে নিজে ১টি টেস্ট অ্যাকাউন্ট খুলে দেখুন লগইন হচ্ছে কিনা।</li>
+      <li><strong>সাপোর্ট ইমেল প্রস্তুত রাখা:</strong> ওয়েবসাইটের ফুটারে বা প্রোফাইলে একটি কাজ করা ইমেল দিন (যেমন: <code>support@yourapp.com</code> বা <code>team.appradar@gmail.com</code>)।</li>
+      <li><strong>সোশ্যাল প্রোফাইল সেটআপ:</strong> আপনার নিজের বা অ্যাপের নামে X (Twitter) এবং LinkedIn প্রোফাইল তৈরি রাখুন (প্রোফাইলে লিখবেন: <em>“Building @AppRadar – App Store Intelligence for Indie Devs”</em>)।</li>
+    </ul>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">ধাপ ১</span>
+      <span class="step-title">Reddit ও Indie Hackers থেকে প্রথম ৩০ জন অর্গানিক ইউজার আনা</span>
+      <span class="step-days">Day 1 – Day 5</span>
+    </div>
+    <p>Reddit-এ সরাসরি বিজ্ঞাপন দিলে পোস্ট ডিলিট হয়ে যায়। কিন্তু যদি আপনি বলেন <strong>"আমি ডেভেলপারদের সাহায্য করতে একটি ফ্রি টুল বানিয়েছি"</strong>, তবে সবাই সাদরে গ্রহণ করবে।</p>
+    
+    <div class="card">
+      <div class="card-title">📌 কোথায় পোস্ট করবেন?</div>
+      <p>১. <code>r/SideProject</code> (সবচেয়ে ফ্রেন্ডলি কমিউনিটি)<br>
+      ২. <code>r/iOSProgramming</code> ও <code>r/androiddev</code><br>
+      ৩. <code>r/IndieHackers</code> এবং <code>r/SaaS</code></p>
+    </div>
+
+    <p><strong>নিচের পোস্টটি হুবহু কপি করে রেডিটে সাবমিট করুন:</strong></p>
+
+    <div class="template-box">
+<div class="template-header">Reddit পোস্ট টেমপ্লেট (Copy & Paste)</div>
+<strong>Post Title:</strong>
+I got tired of Sensor Tower charging $200+/mo, so I built an affordable ASO & Competitor Intelligence tool for indie devs. Free access inside!
+
+<strong>Post Body:</strong>
+Hey everyone 👋
+
+As a developer, one of the biggest headaches I faced was tracking competitor keyword moves and App Store top chart shifts. Tools like Sensor Tower or MobileAction are awesome, but their pricing ($200 to $500/mo) is impossible for indie devs and small studios.
+
+So I spent the last few months building **AppRadar** — a fast, clean App Intelligence platform built specifically for us:
+
+✨ What you can do right now:
+• Track iOS & Google Play Top Charts with hourly movement
+• Competitor Intelligence Matrix (compare ratings, reviews, rankings side-by-side)
+• Review mining & sentiment analysis
+• Instant export of competitor teardown reports
+
+🚀 The platform is live, and I am giving **FREE 100% full access** to everyone here in r/SideProject to get your brutally honest feedback.
+
+👉 Link: [আপনার লাইভ ওয়েবসাইটের লিংক দিন]
+
+Drop your app name or store link in the comments, and I will even run a free competitor breakdown report for you directly!
+
+What features do you think are missing? Would love your honest thoughts!
+    </div>
+
+    <div class="card card-warning">
+      <div class="card-title">⚠️ রেডিটের কমেন্টের উত্তর কীভাবে দেবেন?</div>
+      <p>পোস্ট করার পর প্রতি ১-২ ঘণ্টা পর পর চেক করুন। কেউ কোনো মন্তব্য করলে ৫-১০ মিনিটের মধ্যে বিনীতভাবে ধন্যবাদ জানান। কেউ বাগ (Bug) ধরলে বলুন: <em>“Thanks a ton for catching this! Fixing it right now!”</em> এতে ডেভেলপারদের শ্রদ্ধা ও বিশ্বাস তৈরি হয়।</p>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">ধাপ ২</span>
+      <span class="step-title">"ফ্রি অডিট" হুক — সোশ্যাল মিডিয়ায় ভাইরাল লিড তৈরি করা</span>
+      <span class="step-days">Day 6 – Day 10</span>
+    </div>
+    <p>মানুষ যখন দেখে তাদের নিজস্ব অ্যাপের ডেটা ফ্রিতে এনালাইসিস করে দেওয়া হচ্ছে, তখন তারা স্বপ্রণোদিত হয়ে শেয়ার করে। এটি SaaS ইন্ডাস্ট্রির এক নম্বর লিড ম্যাগনেট।</p>
+
+    <div class="template-box">
+<div class="template-header">X (Twitter) & LinkedIn পোস্ট টেমপ্লেট</div>
+Most indie apps fail not because of bad code, but because of poor App Store Optimization (ASO).
+
+Sensor Tower costs $3,000/year to see who is stealing your keywords.
+
+I built an automated tool that analyzes your app's competitors and top chart performance in 10 seconds.
+
+Want a FREE Competitor & Keyword Intelligence Report for your app?
+
+👇 Just drop your iOS or Android app link in the comments.
+I will generate and reply with your full teardown report! 🚀
+
+#indiedev #buildinpublic #iosdev #androiddev #ASO
+    </div>
+
+    <div class="card card-success">
+      <div class="card-title">🎯 আপনার করণীয় (যখন কেউ কমেন্টে অ্যাপ লিংক দেবে):</div>
+      <p>১. AppRadar-এ গিয়ে ওই অ্যাপটি সার্চ করে কম্পিটিটর মেট্রিক্স এবং টপ চার্ট ভিউ ওপেন করুন।<br>
+      ২. ব্রাউজারের পরিষ্কার ১টি স্ক্রিনশট নিন অথবা রিপোর্ট এক্সপোর্ট করুন।<br>
+      ৩. কমেন্টের রিপ্লাইতে ওই স্ক্রিনশট এটাচ করে লিখুন: <em>“Here is your live competitor breakdown! Notice your top competitor is gaining momentum in [Category]. You can track live updates on [Your AppRadar Link].”</em></p>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">ধাপ ৩</span>
+      <span class="step-title">Product Hunt লঞ্চ গাইড (Day 11 – Day 15)</span>
+      <span class="step-days">Day 11 – Day 15</span>
+    </div>
+    <p>Product Hunt হলো বিশ্বের সবচেয়ে বড় নতুন সফটওয়্যার প্রদর্শনের প্ল্যাটফর্ম। এখান থেকে ১ দিনে ২০০ থেকে ৫০০ জন কোয়ালিটি টেক ইউজার পাওয়া সম্ভব।</p>
+
+    <table style="margin-top: 8px;">
+      <thead>
+        <tr>
+          <th>আইটেম</th>
+          <th>কী দিতে হবে</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Product Name</strong></td>
+          <td>AppRadar</td>
+        </tr>
+        <tr>
+          <td><strong>Tagline</strong></td>
+          <td>Affordable App Store Intelligence & Competitor Matrix for Indie Devs</td>
+        </tr>
+        <tr>
+          <td><strong>Pricing</strong></td>
+          <td>Free tier + Paid Pro ($19 - $29/mo)</td>
+        </tr>
+        <tr>
+          <td><strong>Launch Time</strong></td>
+          <td>PST 12:01 AM (বাংলাদেশ সময় দুপুর ১:০১ টা)। কারণ এই সময়ে সারা দিনের ভোটিং সাইকেল শুরু হয়।</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="template-box">
+<div class="template-header">Product Hunt Maker Comment (লঞ্চ হওয়ার পর প্রথম কমেন্ট)</div>
+Hey Product Hunt! 👋
+
+I'm the maker of AppRadar. Like many of you building mobile apps, I wanted actionable ASO intelligence:
+- Who are my real competitors in my store category?
+- What are their daily top chart movements?
+- What keywords and user sentiments are they winning on?
+
+When I checked existing tools, enterprise pricing started at $199/mo to $500/mo. That pricing is out of reach for indie hackers, indie studios, and solo consultants.
+
+So I built **AppRadar**:
+🎯 Live iOS & Android Top Charts Leaderboards
+🔍 Side-by-side Competitor Intelligence Matrix
+📊 Automated Review Sentiment & Feature Gap Mining
+📄 One-click Teardown Reports for clients or teams
+
+Special PH Promo: Anyone who signs up today gets an extended Pro trial!
+Would love to hear your feedback, suggestions, and feature requests. What do you track most when optimizing your apps?
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">ধাপ ৪</span>
+      <span class="step-title">কোল্ড আউটরিচ: ফ্রিল্যান্সার ও এজেন্সিকে পেইড কাস্টমারে রূপান্তর</span>
+      <span class="step-days">Day 16 – Day 25</span>
+    </div>
+    <p>এজেন্সি এবং ফ্রিল্যান্সাররা সবসময় ক্লায়েন্ট রিপোর্টের জন্য টুল খুঁজে। তারা প্রতি মাসে সহজে $২৯ - $৪৯ সাবস্ক্রিপশন ফি দিতে রাজি থাকে যদি তাদের কাজের সময় বাঁচে।</p>
+
+    <div class="card">
+      <div class="card-title">🔍 টার্গেট কাস্টমার কোথায় পাবেন?</div>
+      <p>LinkedIn-এ সার্চ বারে লিখুন: <code>"ASO Specialist"</code> অথবা <code>"App Marketing Consultant"</code> অথবা <code>"Mobile Growth Marketer"</code>। পিপল ফিল্টারে গিয়ে প্রতিদিন ৫-১০ জনকে মেসেজ পাঠান।</p>
+    </div>
+
+    <div class="template-box">
+<div class="template-header">LinkedIn Direct Message টেমপ্লেট (Copy & Paste)</div>
+Hi [First Name],
+
+Saw your profile and great work helping clients with App Store Optimization and mobile growth.
+
+Most ASO consultants I speak with find Sensor Tower and MobileAction way too expensive for mid-sized clients ($200-$400/mo).
+
+I recently launched **AppRadar** — it gives you real-time Top Charts tracking, competitor intelligence matrix, and downloadable client teardown reports for a fraction of that cost.
+
+I’d love to give you a **Free 1-Month Pro Access** (no credit card required) to test on one of your current client audits. 
+
+Would you be open to checking it out? [আপনার ওয়েবসাইটের লিংক]
+
+Best regards,
+[আপনার নাম]
+    </div>
+
+    <div class="card card-highlight">
+      <div class="card-title">📈 ফলো-আপ মেসেজ (যদি ৩ দিন পর কোনো রিপ্লাই না আসে):</div>
+      <p><em>“Hey [First Name], just bumping this in case it got buried! Happy to set up your free Pro account anytime if you’d like to test the competitor teardown feature.”</em></p>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">ধাপ ৫</span>
+      <span class="step-title">ফ্রি ইউজারদের Pro সাবস্ক্রিপশনে কনভার্ট করার কৌশল</span>
+      <span class="step-days">Day 26 – Day 30</span>
+    </div>
+    <p>আপনার প্ল্যাটফর্মে যখন ৫০-১০০ জন ফ্রি অ্যাকাউন্ট খুলবে, তখন স্বয়ংক্রিয়ভাবে সেল আনার জন্য এই কৌশলটি প্রয়োগ করুন:</p>
+
+    <ul class="checklist">
+      <li><strong>ফ্রি টিয়ারের সীমা (Limits):</strong> ফ্রি অ্যাকাউন্টে ৩টি অ্যাপ ট্র্যাকিং ও বেসিক মেট্রিক্স দিন। কিন্তু ফুল এক্সপোর্ট বা আনলিমিটেড কম্পিটিটর ম্যাট্রিক্স দেখতে Pro আপগ্রেড করতে বলুন।</li>
+      <li><strong>আর্লি বার্ড ৫০% ডিসকাউন্ট ইমেল:</strong> যারা সাইনআপ করেছে তাদের ৪ দিন পর একটি ইমেল পাঠান।</li>
+    </ul>
+
+    <div class="template-box">
+<div class="template-header">Email to Registered Free Users (কনভার্শন ইমেল)</div>
+Subject: Exclusive 50% Early Bird Discount for AppRadar Pro 🚀
+
+Hi [User Name],
+
+Thank you for being one of the first members of AppRadar!
+
+I hope you’ve been enjoying tracking your competitor movements and top chart insights.
+
+To celebrate our public launch, we are offering an exclusive **50% Lifetime Discount** on our Pro plan for the first 50 early supporters:
+
+✅ Unlimited App & Competitor Tracking
+✅ Full Historical Trend Intelligence
+✅ Instant PDF / CSV Report Exports
+✅ Priority Feature Requests
+
+👉 Use Promo Code: **EARLY50** at checkout: [আপনার সাবস্ক্রিপশন আপগ্রেড লিংক]
+
+Feel free to reply directly to this email if you need any custom features or have questions!
+
+Cheers,
+AppRadar Team
+    </div>
+  </div>
+
+  <!-- DAILY ROUTINE & MISTAKES -->
+  <div class="section section-break">
+    <div class="step-header">
+      <span class="step-num">বোনাস</span>
+      <span class="step-title">প্রতিদিনের ১৫ মিনিটের মার্কেটিং রুটিন ও যা কখনই করবেন না</span>
+      <span class="step-days">Daily Habit</span>
+    </div>
+
+    <div class="card card-success">
+      <div class="card-title">⏰ আপনার প্রতিদিনের ১৫ মিনিটের চেকলিস্ট:</div>
+      <p>১. <strong>৫ মিনিট (Twitter/X):</strong> সার্চ করুন <code>#buildinpublic</code> বা <code>#indiedev</code>। অন্তত ২টি মোবাইল অ্যাপ নির্মাতার পোস্টে সুন্দর মন্তব্য করুন।<br>
+      ২. <strong>৫ মিনিট (LinkedIn):</strong> ৩ জন নতুন ASO ফ্রিল্যান্সার বা এজেন্সির মানুষকে কানেকশন রিকোয়েস্ট পাঠান।<br>
+      ৩. <strong>৫ মিনিট (Customer Support):</strong> আপনার অ্যাপে নতুন কেউ সাইনআপ করেছে কিনা দেখুন এবং তাদের কোনো সমস্যা হচ্ছে কিনা একটি ওয়েলকাম নোট দিন।</p>
+    </div>
+
+    <div class="card card-warning" style="margin-top: 14px;">
+      <div class="card-title">🚫 শুরুর দিকে যে ভুলগুলো ভুলেও করবেন না:</div>
+      <p>❌ <strong>টাকা দিয়ে পেইড অ্যাড (Facebook/Google Ads) চালাবেন না:</strong> শুরুর দিকে অ্যাড চালালে শুধু টাকা অপচয় হবে। আগে অর্গানিক উপায়ে প্রথম ২০-৩০ জন সন্তুষ্ট কাস্টমার বানান।<br>
+      ❌ <strong>স্প্যামিং করবেন না:</strong> কারও ইনবক্সে অনুমতি ছাড়া ১০ বার লিংক পাঠাবেন না। সবসময় ভ্যালু ও ফ্রি হেল্প অফার করুন।<br>
+      ❌ <strong>অধৈর্য হবেন না:</strong> SaaS ব্যবসায় প্রথম ৫ জন পেইড কাস্টমার পেতে ২-৩ সপ্তাহ সময় লাগতে পারে। কিন্তু প্রথম ৫ জন পেয়ে গেলে তারা প্রতি মাসে রিকারিং রেভিনিউ (MRR) দেবে।</p>
+    </div>
+
+    <div class="footer-note">
+      <strong>AppRadar Launch Playbook</strong> • তৈরি করা হয়েছে যাতে যে কেউ একদম শূন্য থেকে ধাপ ধরে এক্সিকিউট করতে পারেন। শুভকামনা! 🚀
+    </div>
+  </div>
+
+</body>
+</html>
+`;
+
+const htmlFilePath = path.join(__dirname, 'marketing_guide.html');
+const pdfFilePath = path.join(__dirname, 'AppRadar_Marketing_Playbook_Beginner_Guide.pdf');
+
+fs.writeFileSync(htmlFilePath, htmlContent, 'utf8');
+console.log('HTML file written successfully.');
+
+const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const command = '"' + edgePath + '" --headless=new --disable-gpu --print-to-pdf="' + pdfFilePath + '" --no-pdf-header-footer "' + htmlFilePath + '"';
+
+try {
+  console.log('Generating PDF via Edge headless...');
+  execSync(command);
+  console.log('PDF generated at:', pdfFilePath);
+} catch (err) {
+  console.error('Error generating PDF:', err);
+}
+
