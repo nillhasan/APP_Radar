@@ -35,12 +35,40 @@
   <meta name="msapplication-TileColor" content="#0F172A">
   <meta name="msapplication-TileImage" content="icons/Icon-192.png">
 
-  <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png"/>
-  <link rel="manifest" href="manifest.json">
+  <!-- Icons & Favicon (AppRadar Custom Logo) -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261005">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=20261005">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png?v=20261005">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png?v=20261005">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=20261005">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=20261005">
+  <link rel="manifest" href="manifest.json?v=20261005">
+
+  <script>
+    // Force browser tab to immediately adopt AppRadar favicon and bust stale cache
+    (function() {
+      try {
+        var v = '?v=' + Date.now();
+        var head = document.getElementsByTagName('head')[0];
+        var links = document.querySelectorAll("link[rel*='icon']");
+        links.forEach(function(l) { l.parentNode.removeChild(l); });
+        
+        var icon = document.createElement('link');
+        icon.type = 'image/x-icon';
+        icon.rel = 'shortcut icon';
+        icon.href = 'favicon.ico' + v;
+        head.appendChild(icon);
+
+        var iconPng = document.createElement('link');
+        iconPng.type = 'image/png';
+        iconPng.rel = 'icon';
+        iconPng.sizes = '64x64';
+        iconPng.href = 'favicon.png' + v;
+        head.appendChild(iconPng);
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
     * {
