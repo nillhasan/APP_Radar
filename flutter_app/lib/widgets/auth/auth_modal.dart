@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth/auth_service.dart';
+import '../common/app_radar_logo.dart';
 
 class AuthModal extends StatefulWidget {
   final AuthService authService;
@@ -325,14 +326,7 @@ class _AuthModalState extends State<AuthModal> with SingleTickerProviderStateMix
                 Expanded(
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.radar, color: Colors.white, size: 22),
-                      ),
+                      const AppRadarLogo(size: 36, showGlow: true),
                       const SizedBox(width: 10),
                       const Expanded(
                         child: Column(

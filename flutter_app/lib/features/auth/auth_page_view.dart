@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_service.dart';
 import '../../services/auth/auth_service.dart';
+import '../../widgets/common/app_radar_logo.dart';
 
 /// Full-screen MobileAction-style Split Auth Page.
 ///
@@ -410,14 +411,7 @@ class _AuthPageViewState extends State<AuthPageView> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Icon(Icons.radar, color: Colors.white, size: 20),
-            ),
+            const AppRadarLogo(size: 32, showGlow: true),
             const SizedBox(width: 8),
             Text(
               'AppRadar',

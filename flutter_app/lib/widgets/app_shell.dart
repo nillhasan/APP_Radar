@@ -26,6 +26,7 @@ import '../services/subscription/subscription_service.dart';
 import 'auth/auth_modal.dart';
 import 'pricing/pricing_modal.dart';
 import 'pwa/pwa_install_modal.dart';
+import 'common/app_radar_logo.dart';
 import '../features/landing/landing_page_view.dart';
 import '../features/auth/auth_page_view.dart';
 
@@ -388,14 +389,7 @@ class _AppShellState extends State<AppShell> {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.signalBlue,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.radar, color: Colors.white, size: 20),
-          ),
+          const AppRadarLogo(size: 30, showGlow: true),
           const SizedBox(width: 10),
           Flexible(
             child: Column(

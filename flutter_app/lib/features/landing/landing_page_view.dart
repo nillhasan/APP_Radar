@@ -11,6 +11,7 @@ import '../../widgets/top_charts/top_charts_leaderboard.dart';
 import '../../widgets/landing/platform_screenshots_carousel.dart';
 import '../../widgets/pricing/agency_inquiry_modal.dart';
 import '../../widgets/legal/legal_modal.dart';
+import '../../widgets/common/app_radar_logo.dart';
 
 /// MobileAction-inspired high-converting SaaS Front Page for AppRadar.
 ///
@@ -205,15 +206,7 @@ class _LandingPageViewState extends State<LandingPageView> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.iron : const Color(0xFF2563EB),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : Colors.transparent),
-                  ),
-                  child: const Icon(Icons.radar, color: AppColors.signalBlue, size: 20),
-                ),
+                const AppRadarLogo(size: 34, showGlow: true),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +329,7 @@ class _LandingPageViewState extends State<LandingPageView> {
           children: [
             Row(
               children: [
-                const Icon(Icons.radar, color: Color(0xFF2563EB), size: 24),
+                const AppRadarLogo(size: 28),
                 const SizedBox(width: 8),
                 Text('AppRadar', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                 const Spacer(),
@@ -3014,14 +3007,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.signalBlue,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.radar, color: Colors.white, size: 18),
-                      ),
+                      const AppRadarLogo(size: 28),
                       const SizedBox(width: 10),
                       Text(
                         'AppRadar',
