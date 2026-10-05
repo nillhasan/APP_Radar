@@ -413,56 +413,92 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Dialog Search Bar
-                    TextField(
-                      onChanged: (val) => setDialogState(() => dialogSearch = val),
-                      decoration: InputDecoration(
-                        hintText: 'Filter by app or developer name...',
-                        prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
-                        filled: true,
-                        fillColor: AppColors.surfaceSecondary,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Category Filter Chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: AppConstants.categories.map((cat) {
-                          final isSelected = dialogCategory == cat;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: FilterChip(
-                              label: Text(cat),
-                              selected: isSelected,
-                              onSelected: (_) => setDialogState(() => dialogCategory = cat),
-                              backgroundColor: AppColors.surfaceSecondary,
-                              selectedColor: AppColors.primaryLight,
-                              labelStyle: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    // Dialog Search Bar & Category Filter in one row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            onChanged: (val) => setDialogState(() => dialogSearch = val),
+                            decoration: InputDecoration(
+                              hintText: 'Filter by app or developer name...',
+                              prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
+                              filled: true,
+                              fillColor: AppColors.surfaceSecondary,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: AppColors.border),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: BorderSide(
-                                  color: isSelected ? AppColors.primary : AppColors.border,
-                                ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: AppColors.border),
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () async {
+                            final cat = await CategoryPickerModal.show(context, initialCategory: dialogCategory);
+                            if (cat != null) {
+                              setDialogState(() => dialogCategory = cat);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            height: 44,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSecondary,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: CategoryUtils.isGameCategory(dialogCategory)
+                                    ? AppColors.accent.withValues(alpha: 0.6)
+                                    : (dialogCategory != 'All Categories'
+                                        ? AppColors.primary.withValues(alpha: 0.6)
+                                        : AppColors.border),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CategoryUtils.isGameCategory(dialogCategory)
+                                      ? Icons.sports_esports_outlined
+                                      : Icons.category_outlined,
+                                  size: 16,
+                                  color: CategoryUtils.isGameCategory(dialogCategory)
+                                      ? AppColors.accent
+                                      : (dialogCategory != 'All Categories'
+                                          ? AppColors.primary
+                                          : AppColors.textSecondary),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  dialogCategory,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: CategoryUtils.isGameCategory(dialogCategory)
+                                        ? AppColors.accent
+                                        : (dialogCategory != 'All Categories'
+                                            ? AppColors.primary
+                                            : AppColors.textPrimary),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                if (dialogCategory != 'All Categories')
+                                  GestureDetector(
+                                    onTap: () => setDialogState(() => dialogCategory = 'All Categories'),
+                                    child: const Icon(Icons.close_rounded, size: 14, color: AppColors.textSecondary),
+                                  )
+                                else
+                                  const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     const Divider(height: 1),
@@ -662,45 +698,9 @@ class _CompetitorsViewState extends State<CompetitorsView> {
               ),
               const SizedBox(width: 12),
 
-              // Category Dropdown
-              Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCategory,
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
-                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-                    items: AppConstants.categories.map((c) {
-                      return DropdownMenuItem(value: c, child: Text(c));
-                    }).toList(),
-                    onChanged: (cat) {
-                      if (cat != null) {
-                        setState(() {
-                          _selectedCategory = cat;
-                          if (cat != 'All Categories') {
-                            final matches = _allApps.where((a) => CategoryUtils.matchesCategory(a, cat)).toList();
-                            if (matches.isNotEmpty) {
-                              matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
-                              _selectedApp = matches.first;
-                            }
-                          }
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // "Category Picker Modal" Button
-              OutlinedButton.icon(
-                onPressed: () async {
+              // Unified Category Selector
+              InkWell(
+                onTap: () async {
                   final cat = await CategoryPickerModal.show(context, initialCategory: _selectedCategory);
                   if (cat != null) {
                     setState(() {
@@ -715,19 +715,64 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                     });
                   }
                 },
-                icon: const Icon(Icons.tune_rounded, size: 16),
-                label: const Text(
-                  'Explore Categories',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  side: const BorderSide(color: AppColors.border),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: CategoryUtils.isGameCategory(_selectedCategory)
+                          ? AppColors.accent.withValues(alpha: 0.6)
+                          : (_selectedCategory != 'All Categories'
+                              ? AppColors.primary.withValues(alpha: 0.6)
+                              : AppColors.border),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CategoryUtils.isGameCategory(_selectedCategory)
+                            ? Icons.sports_esports_outlined
+                            : Icons.category_outlined,
+                        size: 18,
+                        color: CategoryUtils.isGameCategory(_selectedCategory)
+                            ? AppColors.accent
+                            : (_selectedCategory != 'All Categories' ? AppColors.primary : AppColors.textSecondary),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _selectedCategory,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: CategoryUtils.isGameCategory(_selectedCategory)
+                              ? AppColors.accent
+                              : (_selectedCategory != 'All Categories' ? AppColors.primary : AppColors.textPrimary),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      if (_selectedCategory != 'All Categories')
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedCategory = 'All Categories';
+                            });
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 2),
+                            child: Icon(Icons.close_rounded, size: 16, color: AppColors.textSecondary),
+                          ),
+                        )
+                      else
+                        const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
 
               // "Browse All Apps" Button
               ElevatedButton.icon(
@@ -744,49 +789,6 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                 ),
               ),
             ],
-          ),
-
-          // Horizontal Category Filter Chips (Crash-proof & ultra clean)
-          const SizedBox(height: 14),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: AppConstants.categories.map((cat) {
-                final isSelected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedCategory = cat;
-                        if (cat != 'All Categories') {
-                          final matches = _allApps.where((a) => CategoryUtils.matchesCategory(a, cat)).toList();
-                          if (matches.isNotEmpty) {
-                            matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
-                            _selectedApp = matches.first;
-                          }
-                        }
-                      });
-                    },
-                    backgroundColor: AppColors.surfaceSecondary,
-                    selectedColor: AppColors.primaryLight,
-                    labelStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected ? AppColors.primary : AppColors.border,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
           ),
 
           // LIVE AUTOCOMPLETE SEARCH RESULTS
