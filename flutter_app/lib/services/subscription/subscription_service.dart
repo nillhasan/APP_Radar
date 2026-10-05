@@ -26,28 +26,42 @@ class SubscriptionService extends ChangeNotifier {
   final Set<String> _urlTeardownAppIds = {};
   static const int freeUrlTeardownLimit = 1;
 
+  /// Privileged admin / owner emails that permanently maintain Pro status
+  static const Set<String> _adminProEmails = {
+    'metanestshop@gmail.com',
+  };
+
+  bool get _isAdminProUser {
+    final email = _authService?.userEmail.trim().toLowerCase();
+    if (email == null || email.isEmpty) return false;
+    return _adminProEmails.contains(email);
+  }
+
   SubscriptionService({
     SupabaseClient? supabaseClient,
     AuthService? authService,
   })  : _supabaseClient = supabaseClient,
         _authService = authService {
-    if (_authService == null || _authService.isAuthenticated) {
-      final savedTier = SubscriptionStorage.getStoredTier();
-      if (savedTier == 'pro') {
-        _tier = UserTier.pro;
-      } else if (savedTier == 'agency') {
-        _tier = UserTier.agency;
-      }
+    final savedTier = SubscriptionStorage.getStoredTier();
+    if (savedTier == 'pro' || _isAdminProUser) {
+      _tier = UserTier.pro;
+    } else if (savedTier == 'agency') {
+      _tier = UserTier.agency;
     }
     final savedUrlTeardowns = SubscriptionStorage.getStoredUrlTeardowns();
     _urlTeardownAppIds.addAll(savedUrlTeardowns);
     _initSupabaseSync();
   }
 
-  UserTier get currentTier => _tier;
-  bool get isPro => _tier == UserTier.pro || _tier == UserTier.agency;
-  bool get isFree => _tier == UserTier.free;
-  bool get isAgency => _tier == UserTier.agency;
+  UserTier get currentTier {
+    if (_tier == UserTier.agency) return UserTier.agency;
+    if (_isAdminProUser) return UserTier.pro;
+    return _tier;
+  }
+
+  bool get isPro => currentTier == UserTier.pro || currentTier == UserTier.agency;
+  bool get isFree => currentTier == UserTier.free;
+  bool get isAgency => currentTier == UserTier.agency;
 
   String? get stripeCustomerId => _stripeCustomerId;
   String? get stripeSubscriptionId => _stripeSubscriptionId;
@@ -73,6 +87,11 @@ class SubscriptionService extends ChangeNotifier {
     if (_authService != null) {
       _authService.addListener(() {
         if (_authService.isAuthenticated) {
+          if (_isAdminProUser) {
+            _tier = UserTier.pro;
+            SubscriptionStorage.setStoredTier('pro');
+            notifyListeners();
+          }
           fetchSubscriptionFromCloud();
         } else {
           _tier = UserTier.free;
@@ -84,6 +103,10 @@ class SubscriptionService extends ChangeNotifier {
       });
 
       if (_authService.isAuthenticated) {
+        if (_isAdminProUser) {
+          _tier = UserTier.pro;
+          SubscriptionStorage.setStoredTier('pro');
+        }
         fetchSubscriptionFromCloud();
       }
     }
@@ -93,6 +116,14 @@ class SubscriptionService extends ChangeNotifier {
   Future<void> fetchSubscriptionFromCloud() async {
     final client = _supabaseClient;
     final user = _authService?.currentUser;
+    final isAdmin = _isAdminProUser;
+
+    if (isAdmin) {
+      _tier = UserTier.pro;
+      SubscriptionStorage.setStoredTier('pro');
+      notifyListeners();
+    }
+
     if (client == null || user == null) return;
 
     try {
@@ -112,7 +143,10 @@ class SubscriptionService extends ChangeNotifier {
           _currentPeriodEnd = DateTime.tryParse(response['current_period_end']);
         }
 
-        if (statusStr == 'active') {
+        if (isAdmin) {
+          _tier = UserTier.pro;
+          SubscriptionStorage.setStoredTier('pro');
+        } else if (statusStr == 'active') {
           if (tierStr == 'pro') {
             _tier = UserTier.pro;
             SubscriptionStorage.setStoredTier('pro');
@@ -137,12 +171,23 @@ class SubscriptionService extends ChangeNotifier {
         }).catchError((err) {
           debugPrint('Note: default subscription init: $err');
         });
-        _tier = UserTier.free;
-        SubscriptionStorage.setStoredTier('free');
+
+        if (isAdmin) {
+          _tier = UserTier.pro;
+          SubscriptionStorage.setStoredTier('pro');
+        } else {
+          _tier = UserTier.free;
+          SubscriptionStorage.setStoredTier('free');
+        }
         notifyListeners();
       }
     } catch (e) {
       debugPrint('Error syncing subscription with Supabase: $e');
+      if (isAdmin) {
+        _tier = UserTier.pro;
+        SubscriptionStorage.setStoredTier('pro');
+        notifyListeners();
+      }
     }
   }
 

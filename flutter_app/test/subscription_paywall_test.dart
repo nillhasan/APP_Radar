@@ -14,6 +14,10 @@ import 'package:app_radar/widgets/pricing/pricing_modal.dart';
 import 'package:app_radar/main.dart';
 
 void main() {
+  setUp(() {
+    SubscriptionStorage.setStoredTier(null);
+  });
+
   group('SubscriptionService Unit Tests', () {
     test('Default state is Free tier with 3 daily teardowns', () {
       final sub = SubscriptionService();
@@ -55,6 +59,18 @@ void main() {
 
       sub.downgradeToFree();
       expect(sub.isFree, true);
+    });
+
+    test('Admin user metanestshop@gmail.com is automatically granted Pro tier', () {
+      final auth = AuthService();
+      auth.signInDemoUser(email: 'metanestshop@gmail.com');
+      final sub = SubscriptionService(authService: auth);
+
+      expect(sub.isPro, true);
+      expect(sub.isFree, false);
+      expect(sub.currentTier, UserTier.pro);
+      expect(sub.canGenerateBlueprint(), true);
+      expect(sub.remainingFreeTeardowns, 999);
     });
   });
 
