@@ -625,10 +625,7 @@ class _PricingModalState extends State<PricingModal> {
           const SizedBox(height: 20),
           FilledButton.tonalIcon(
             onPressed: () async {
-              await widget.subscriptionService.fetchSubscriptionFromCloud();
-              if (!widget.subscriptionService.isPro) {
-                await widget.subscriptionService.handlePaymentSuccess();
-              }
+              await widget.subscriptionService.handlePaymentSuccess();
               if (mounted) {
                 if (Navigator.of(context).canPop()) {
                   Navigator.of(context).pop();

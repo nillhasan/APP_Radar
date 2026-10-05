@@ -275,6 +275,7 @@ class SubscriptionService extends ChangeNotifier {
 
   Future<void> handlePaymentSuccess({String? sessionId}) async {
     _tier = UserTier.pro;
+    _currentPeriodEnd = DateTime.now().toUtc().add(const Duration(days: 365));
     SubscriptionStorage.setStoredTier('pro');
     notifyListeners();
 
@@ -286,11 +287,36 @@ class SubscriptionService extends ChangeNotifier {
           'user_id': user.id,
           'tier': 'pro',
           'status': 'active',
-          'stripe_subscription_id': sessionId,
+          'current_period_end': _currentPeriodEnd!.toIso8601String(),
+          'stripe_subscription_id': sessionId ?? 'test_active_sub',
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         }, onConflict: 'user_id');
       } catch (e) {
         debugPrint('Note: unable to save subscription row to Supabase: $e');
+      }
+    }
+  }
+
+  /// Allows reverting back to Free in cloud (convenient for testing cycles)
+  Future<void> downgradeSubscriptionInCloud() async {
+    _tier = UserTier.free;
+    _currentPeriodEnd = null;
+    SubscriptionStorage.setStoredTier(null);
+    notifyListeners();
+
+    final client = _supabaseClient;
+    final user = _authService?.currentUser;
+    if (client != null && user != null) {
+      try {
+        await client.from('user_subscriptions').upsert({
+          'user_id': user.id,
+          'tier': 'free',
+          'status': 'active',
+          'stripe_subscription_id': null,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        }, onConflict: 'user_id');
+      } catch (e) {
+        debugPrint('Note: unable to save downgrade row to Supabase: $e');
       }
     }
   }
