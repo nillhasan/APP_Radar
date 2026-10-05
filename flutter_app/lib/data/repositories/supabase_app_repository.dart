@@ -60,6 +60,15 @@ class SupabaseAppRepository implements AppRepository {
       final List<dynamic> data = response as List<dynamic>;
       if (data.isNotEmpty) {
         final mapped = data.map((json) => _mapJsonToAppItem(json as Map<String, dynamic>)).toList();
+        try {
+          final fallback = await fallbackRepo.getAllApps();
+          final existingNames = mapped.map((a) => a.name.toLowerCase()).toSet();
+          for (final fb in fallback) {
+            if (!existingNames.contains(fb.name.toLowerCase())) {
+              mapped.add(fb);
+            }
+          }
+        } catch (_) {}
         _cachedApps = mapped;
         _lastFetchTime = DateTime.now();
         return mapped;
@@ -84,6 +93,16 @@ class SupabaseAppRepository implements AppRepository {
       }
 
       final mapped = data.map((json) => _mapJsonToAppItem(json as Map<String, dynamic>)).toList();
+      try {
+        final fallback = await fallbackRepo.getAllApps();
+        final existingNames = mapped.map((a) => a.name.toLowerCase()).toSet();
+        for (final fb in fallback) {
+          if (!existingNames.contains(fb.name.toLowerCase())) {
+            mapped.add(fb);
+          }
+        }
+      } catch (_) {}
+
       _cachedApps = mapped;
       _lastFetchTime = DateTime.now();
       return mapped;

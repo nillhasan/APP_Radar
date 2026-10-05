@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_service.dart';
+import '../../data/mock/mock_data.dart';
 import '../../data/models/app_item.dart';
 import '../app_icon_widget.dart';
+import 'category_picker_modal.dart';
 
 class TopChartsLeaderboard extends StatefulWidget {
   final List<AppItem> apps;
@@ -32,25 +34,19 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
   final List<String> _stores = ['App Store', 'Google Play', 'All Stores'];
   final List<Map<String, String>> _regions = [
     {'code': 'US', 'name': '🇺🇸 United States'},
+    {'code': 'BD', 'name': '🇧🇩 Bangladesh'},
+    {'code': 'IN', 'name': '🇮🇳 India'},
     {'code': 'UK', 'name': '🇬🇧 United Kingdom'},
     {'code': 'DE', 'name': '🇩🇪 Germany'},
     {'code': 'JP', 'name': '🇯🇵 Japan'},
+    {'code': 'CA', 'name': '🇨🇦 Canada'},
+    {'code': 'AU', 'name': '🇦🇺 Australia'},
+    {'code': 'FR', 'name': '🇫🇷 France'},
+    {'code': 'BR', 'name': '🇧🇷 Brazil'},
+    {'code': 'SG', 'name': '🇸🇬 Singapore'},
+    {'code': 'AE', 'name': '🇦🇪 UAE'},
+    {'code': 'KR', 'name': '🇰🇷 South Korea'},
     {'code': 'Global', 'name': '🌐 Global'},
-  ];
-
-  static const List<String> _defaultCategories = [
-    'All Categories',
-    'Productivity',
-    'Education',
-    'Business',
-    'Health & Fitness',
-    'Finance',
-    'Utilities & Tools',
-    'Photo & Video',
-    'Social & Communication',
-    'Entertainment',
-    'Casual',
-    'Games',
   ];
 
   @override
@@ -64,20 +60,25 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
     _lastUpdatedTime = '${now.year}-$month-$day $hour:$minute';
   }
 
-  List<String> get _categories {
-    final dynamicCategories = <String>{};
-    for (final a in widget.apps) {
-      if (a.category.trim().isNotEmpty) {
-        dynamicCategories.add(a.category.trim());
-      }
-    }
-    final combined = List<String>.from(_defaultCategories);
-    for (final cat in dynamicCategories) {
-      if (!combined.any((c) => c.toLowerCase() == cat.toLowerCase())) {
-        combined.add(cat);
+  List<AppItem> get _allApps {
+    final existingNames = widget.apps.map((a) => a.name.toLowerCase()).toSet();
+    final combined = List<AppItem>.from(widget.apps);
+    for (final app in MockData.apps) {
+      if (!existingNames.contains(app.name.toLowerCase())) {
+        combined.add(app);
       }
     }
     return combined;
+  }
+
+  static bool _isGameCategory(String cat) {
+    const genres = [
+      'game', 'action', 'adventure', 'casual', 'board', 'card', 'casino', 'dice',
+      'educational', 'family', 'puzzle', 'racing', 'role playing', 'simulation',
+      'sports', 'strategy', 'trivia', 'word'
+    ];
+    final lower = cat.toLowerCase();
+    return genres.any((g) => lower.contains(g));
   }
 
   double _deriveRegionalShare(AppItem app, String region) {
@@ -86,15 +87,53 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
       return app.regionalBreakdown![region]!;
     }
     final hash = (app.name.hashCode ^ app.category.hashCode).abs();
+    final lowerName = app.name.toLowerCase();
+
     switch (region) {
       case 'US':
         return 0.38 + ((hash % 16) / 100.0);
+      case 'BD':
+        final isBDHero = lowerName.contains('ludo') ||
+            lowerName.contains('free fire') ||
+            lowerName.contains('subway') ||
+            lowerName.contains('pubg') ||
+            lowerName.contains('bkash') ||
+            lowerName.contains('pool') ||
+            lowerName.contains('carrom') ||
+            lowerName.contains('football') ||
+            lowerName.contains('clash');
+        return isBDHero ? (0.65 + ((hash % 15) / 100.0)) : (0.16 + ((hash % 12) / 100.0));
+      case 'IN':
+        final isINHero = lowerName.contains('ludo') ||
+            lowerName.contains('phonepe') ||
+            lowerName.contains('free fire') ||
+            lowerName.contains('pubg') ||
+            lowerName.contains('subway') ||
+            lowerName.contains('pool') ||
+            lowerName.contains('carrom') ||
+            lowerName.contains('candy') ||
+            lowerName.contains('chess');
+        return isINHero ? (0.70 + ((hash % 15) / 100.0)) : (0.20 + ((hash % 14) / 100.0));
       case 'UK':
         return 0.16 + (((hash >> 2) % 12) / 100.0);
       case 'DE':
         return 0.12 + (((hash >> 4) % 10) / 100.0);
       case 'JP':
-        return 0.10 + (((hash >> 6) % 12) / 100.0);
+        return 0.14 + (((hash >> 6) % 12) / 100.0);
+      case 'CA':
+        return 0.15 + (((hash >> 5) % 10) / 100.0);
+      case 'AU':
+        return 0.14 + (((hash >> 7) % 10) / 100.0);
+      case 'FR':
+        return 0.13 + (((hash >> 2) % 11) / 100.0);
+      case 'BR':
+        return 0.22 + (((hash >> 4) % 14) / 100.0);
+      case 'SG':
+        return 0.12 + (((hash >> 6) % 9) / 100.0);
+      case 'AE':
+        return 0.18 + (((hash >> 3) % 12) / 100.0);
+      case 'KR':
+        return 0.16 + (((hash >> 5) % 12) / 100.0);
       default:
         return 0.15;
     }
@@ -121,7 +160,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
   List<AppItem> get _filteredApps {
     final query = widget.searchQuery?.trim().toLowerCase();
 
-    return widget.apps.where((app) {
+    return _allApps.where((app) {
       if (query != null && query.isNotEmpty) {
         final matchesName = app.name.toLowerCase().contains(query);
         final matchesDev = app.developer.toLowerCase().contains(query);
@@ -143,9 +182,28 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
       }
 
       if (_selectedCategory != 'All Categories') {
-        final categoryMatches = app.category.toLowerCase().contains(_selectedCategory.toLowerCase()) ||
-            _selectedCategory.toLowerCase().contains(app.category.toLowerCase());
-        if (!categoryMatches) return false;
+        final selected = _selectedCategory.toLowerCase();
+        final appCat = app.category.toLowerCase();
+        final isGame = appCat.contains('game') ||
+            _isGameCategory(appCat) ||
+            app.coreFeatures.any((f) => _isGameCategory(f)) ||
+            _isGameCategory(app.notes);
+
+        if (selected == 'games') {
+          if (!isGame) return false;
+        } else if (selected == 'applications') {
+          if (isGame) return false;
+        } else {
+          // Specific subcategory (e.g. Action, Puzzle, Board, Productivity, Finance, etc.)
+          final matchesCat = appCat.contains(selected) || selected.contains(appCat);
+          final matchesFeatures = app.coreFeatures.any((f) => f.toLowerCase().contains(selected));
+          final matchesDesc = app.description.toLowerCase().contains(selected) ||
+              app.whatItDoes.toLowerCase().contains(selected) ||
+              app.notes.toLowerCase().contains(selected);
+          if (!matchesCat && !matchesFeatures && !matchesDesc) {
+            return false;
+          }
+        }
       }
 
       return true;
@@ -311,11 +369,6 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
   }
 
   Widget _buildFilterBox(bool isStacked, [bool isDark = false]) {
-    final categories = _categories;
-    if (!categories.contains(_selectedCategory)) {
-      _selectedCategory = 'All Categories';
-    }
-
     if (isStacked) {
       return Container(
         padding: const EdgeInsets.all(12),
@@ -330,7 +383,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
             const SizedBox(height: 8),
             _buildDropdownField('Region', _buildRegionDropdown(isDark), isDark),
             const SizedBox(height: 8),
-            _buildDropdownField('Category', _buildCategoryDropdown(categories, isDark), isDark),
+            _buildDropdownField('Category', _buildCategoryDropdown(isDark), isDark),
           ],
         ),
       );
@@ -349,7 +402,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
           const SizedBox(width: 14),
           Expanded(child: _buildDropdownField('Region', _buildRegionDropdown(isDark), isDark)),
           const SizedBox(width: 14),
-          Expanded(child: _buildDropdownField('Category', _buildCategoryDropdown(categories, isDark), isDark)),
+          Expanded(child: _buildDropdownField('Category', _buildCategoryDropdown(isDark), isDark)),
         ],
       ),
     );
@@ -438,34 +491,49 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
     );
   }
 
-  Widget _buildCategoryDropdown(List<String> categories, [bool isDark = false]) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.iron : Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedCategory,
-          dropdownColor: isDark ? AppColors.graphite : Colors.white,
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: isDark ? AppColors.ash : const Color(0xFF64748B)),
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.paper : const Color(0xFF0F172A)),
-          items: categories.map((c) {
-            return DropdownMenuItem<String>(
-              value: c,
-              child: Text(c, overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) setState(() => _selectedCategory = val);
-          },
+  Widget _buildCategoryDropdown([bool isDark = false]) {
+    return InkWell(
+      onTap: _openCategoryModal,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.iron : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isDark ? AppColors.rekkiBorderSubtle : const Color(0xFFCBD5E1)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _selectedCategory,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.paper : const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: isDark ? AppColors.ash : const Color(0xFF64748B),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _openCategoryModal() async {
+    final selected = await CategoryPickerModal.show(context, initialCategory: _selectedCategory);
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedCategory = selected;
+      });
+    }
   }
 
   Widget _buildDesktopThreeColumns([bool isDark = false]) {
