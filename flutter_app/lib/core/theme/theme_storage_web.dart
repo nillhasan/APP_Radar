@@ -3,7 +3,7 @@ import 'dart:html' as html;
 
 String? getStoredThemeModeImpl() {
   try {
-    return html.window.localStorage['appradar_theme_mode'];
+    return html.window.localStorage['appradar_rekki_theme_mode'];
   } catch (_) {
     return null;
   }
@@ -12,9 +12,9 @@ String? getStoredThemeModeImpl() {
 void setStoredThemeModeImpl(String? mode) {
   try {
     if (mode == null) {
-      html.window.localStorage.remove('appradar_theme_mode');
+      html.window.localStorage.remove('appradar_rekki_theme_mode');
     } else {
-      html.window.localStorage['appradar_theme_mode'] = mode;
+      html.window.localStorage['appradar_rekki_theme_mode'] = mode;
     }
   } catch (_) {}
 }

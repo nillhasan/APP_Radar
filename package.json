@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "cd flutter_app && flutter run -d chrome --web-port 3000",
     "start": "cd flutter_app && flutter run -d chrome --web-port 3000",
+    "build": "cd flutter_app && flutter build web --release",
+    "deploy:vercel": "cd flutter_app/build/web && npx vercel --prod",
     "test": "cd flutter_app && flutter test",
     "analyze": "cd flutter_app && flutter analyze",
     "pipeline": "cd automation && npm run pipeline"
