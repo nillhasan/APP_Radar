@@ -10,6 +10,7 @@ import '../../services/subscription/subscription_service.dart';
 import '../../widgets/top_charts/top_charts_leaderboard.dart';
 import '../../widgets/landing/platform_screenshots_carousel.dart';
 import '../../widgets/pricing/agency_inquiry_modal.dart';
+import '../../widgets/legal/legal_modal.dart';
 
 /// MobileAction-inspired high-converting SaaS Front Page for AppRadar.
 ///
@@ -3072,15 +3073,15 @@ class _LandingPageViewState extends State<LandingPageView> {
                       spacing: 16,
                       children: [
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 0),
                           child: Text('Privacy Policy', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 1),
                           child: Text('Terms of Service', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 2),
                           child: Text('Security', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                       ],
@@ -3099,15 +3100,15 @@ class _LandingPageViewState extends State<LandingPageView> {
                       spacing: 16,
                       children: [
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 0),
                           child: Text('Privacy Policy', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 1),
                           child: Text('Terms of Service', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () => LegalModal.show(context, initialTabIndex: 2),
                           child: Text('Security', style: TextStyle(fontSize: 12, color: isDark ? AppColors.ash : const Color(0xFF94A3B8))),
                         ),
                       ],
