@@ -17,6 +17,7 @@ import '../../widgets/score_badge.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/app_icon_widget.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/constants/category_utils.dart';
 
 class AppExplorerView extends StatefulWidget {
   final AppRepository appRepo;
@@ -368,9 +369,7 @@ class _AppExplorerViewState extends State<AppExplorerView> {
                     app.description.toLowerCase().contains(_search.toLowerCase()) ||
                     app.developer.toLowerCase().contains(_search.toLowerCase());
 
-                final matchesCategory = _category == 'All Categories' ||
-                    _category == 'All' ||
-                    app.category.toLowerCase().contains(_category.toLowerCase());
+                final matchesCategory = CategoryUtils.matchesCategory(app, _category);
 
                 final matchesPlatform = _platform == 'All Platforms' ||
                     app.platform.toLowerCase().contains(_platform.toLowerCase());

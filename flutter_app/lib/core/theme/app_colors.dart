@@ -22,6 +22,7 @@ class AppColors {
   static const Color primaryHover = Color(0xFF0052BA);
   static const Color primaryLight = Color(0xFFEFF6FF); // Blue 50
   static const Color primaryBorder = Color(0xFFBFDBFE); // Blue 200
+  static const Color accent = Color(0xFFE11D48); // Rose / Vibrant Game accent
 
   // AI Brand Gradient / Accent
   static const Color aiPurple = Color(0xFF7C3AED);

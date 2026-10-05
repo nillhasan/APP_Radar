@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/app_item.dart';
 import '../models/negative_review_mining.dart';
+import '../../core/constants/category_utils.dart';
 import 'app_repository.dart';
 
 class SupabaseAppRepository implements AppRepository {
@@ -162,10 +163,7 @@ class SupabaseAppRepository implements AppRepository {
           app.description.toLowerCase().contains(query.toLowerCase()) ||
           app.developer.toLowerCase().contains(query.toLowerCase());
 
-      final matchesCategory = category == null ||
-          category == 'All Categories' ||
-          category == 'All' ||
-          app.category.toLowerCase().contains(category.toLowerCase());
+      final matchesCategory = CategoryUtils.matchesCategory(app, category);
 
       final matchesPlatform = platform == null ||
           platform == 'All Platforms' ||
@@ -264,6 +262,8 @@ class SupabaseAppRepository implements AppRepository {
         (json['rating'] as num?)?.toDouble() ?? 4.7,
         (json['review_count'] as num?)?.toInt() ?? 5000,
       ),
+      subcategory: json['subcategory'] as String? ??
+          (json['app_analysis'] is Map ? (json['app_analysis'] as Map)['subcategory'] as String? : null),
     );
   }
 

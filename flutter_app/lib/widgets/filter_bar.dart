@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/constants/app_constants.dart';
+import '../core/constants/category_utils.dart';
+import 'top_charts/category_picker_modal.dart';
 
 class FilterBar extends StatelessWidget {
   final String searchQuery;
@@ -47,25 +49,53 @@ class FilterBar extends StatelessWidget {
       ),
     );
 
-    final categoryDropdown = Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedCategory,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
-          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-          items: AppConstants.categories.map((c) {
-            return DropdownMenuItem(value: c, child: Text(c));
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) onCategoryChanged(val);
-          },
+    final isGame = CategoryUtils.isGameCategory(selectedCategory);
+
+    final categoryDropdown = InkWell(
+      key: const ValueKey('filter_bar_category_trigger'),
+      borderRadius: BorderRadius.circular(8),
+      onTap: () async {
+        final result = await CategoryPickerModal.show(
+          context,
+          initialCategory: selectedCategory,
+        );
+        if (result != null) {
+          onCategoryChanged(result);
+        }
+      },
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isGame ? AppColors.accent.withValues(alpha: 0.6) : AppColors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            Icon(
+              isGame ? Icons.sports_esports_outlined : Icons.category_outlined,
+              size: 16,
+              color: isGame ? AppColors.accent : AppColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                selectedCategory,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isGame ? AppColors.accent : AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
+          ],
         ),
       ),
     );

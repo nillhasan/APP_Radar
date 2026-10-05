@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/category_utils.dart';
+import '../../widgets/top_charts/category_picker_modal.dart';
 import '../../data/models/app_item.dart';
 import '../../data/repositories/app_repository.dart';
 import '../../data/mock/mock_data.dart';
@@ -377,8 +379,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
               final matchesQuery = dialogSearch.isEmpty ||
                   a.name.toLowerCase().contains(dialogSearch.toLowerCase()) ||
                   a.developer.toLowerCase().contains(dialogSearch.toLowerCase());
-              final matchesCat = dialogCategory == 'All Categories' ||
-                  a.category.toLowerCase() == dialogCategory.toLowerCase();
+              final matchesCat = CategoryUtils.matchesCategory(a, dialogCategory);
               return matchesQuery && matchesCat;
             }).toList();
 
@@ -683,11 +684,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                         setState(() {
                           _selectedCategory = cat;
                           if (cat != 'All Categories') {
-                            final catLower = cat.trim().toLowerCase();
-                            final matches = _allApps.where((a) {
-                              final aLower = a.category.trim().toLowerCase();
-                              return aLower == catLower || aLower.contains(catLower) || catLower.contains(aLower);
-                            }).toList();
+                            final matches = _allApps.where((a) => CategoryUtils.matchesCategory(a, cat)).toList();
                             if (matches.isNotEmpty) {
                               matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
                               _selectedApp = matches.first;
@@ -697,6 +694,37 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                       }
                     },
                   ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // "Category Picker Modal" Button
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final cat = await CategoryPickerModal.show(context, initialCategory: _selectedCategory);
+                  if (cat != null) {
+                    setState(() {
+                      _selectedCategory = cat;
+                      if (cat != 'All Categories') {
+                        final matches = _allApps.where((a) => CategoryUtils.matchesCategory(a, cat)).toList();
+                        if (matches.isNotEmpty) {
+                          matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
+                          _selectedApp = matches.first;
+                        }
+                      }
+                    });
+                  }
+                },
+                icon: const Icon(Icons.tune_rounded, size: 16),
+                label: const Text(
+                  'Explore Categories',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -734,11 +762,7 @@ class _CompetitorsViewState extends State<CompetitorsView> {
                       setState(() {
                         _selectedCategory = cat;
                         if (cat != 'All Categories') {
-                          final catLower = cat.trim().toLowerCase();
-                          final matches = _allApps.where((a) {
-                            final aLower = a.category.trim().toLowerCase();
-                            return aLower == catLower || aLower.contains(catLower) || catLower.contains(aLower);
-                          }).toList();
+                          final matches = _allApps.where((a) => CategoryUtils.matchesCategory(a, cat)).toList();
                           if (matches.isNotEmpty) {
                             matches.sort((a, b) => b.opportunityScore.compareTo(a.opportunityScore));
                             _selectedApp = matches.first;

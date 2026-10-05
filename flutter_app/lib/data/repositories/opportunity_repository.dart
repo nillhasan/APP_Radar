@@ -1,5 +1,6 @@
 import '../models/app_item.dart';
 import 'app_repository.dart';
+import '../../core/constants/category_utils.dart';
 
 abstract class OpportunityRepository {
   Future<List<AppItem>> getTopOpportunities({int limit = 5});
@@ -33,10 +34,7 @@ class MockOpportunityRepository implements OpportunityRepository {
   }) async {
     final apps = await appRepository.getAllApps();
     var filtered = apps.where((a) {
-      if (category != null &&
-          category != 'All Categories' &&
-          category != 'All' &&
-          !a.category.toLowerCase().contains(category.toLowerCase())) {
+      if (!CategoryUtils.matchesCategory(a, category)) {
         return false;
       }
       if (platform != null &&

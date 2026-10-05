@@ -1,5 +1,6 @@
 import '../models/app_item.dart';
 import '../mock/mock_data.dart';
+import '../../core/constants/category_utils.dart';
 
 abstract class AppRepository {
   Future<List<AppItem>> getAllApps();
@@ -34,10 +35,7 @@ class MockAppRepository implements AppRepository {
           app.description.toLowerCase().contains(query.toLowerCase()) ||
           app.developer.toLowerCase().contains(query.toLowerCase());
 
-      final matchesCategory = category == null ||
-          category == 'All Categories' ||
-          category == 'All' ||
-          app.category.toLowerCase().contains(category.toLowerCase());
+      final matchesCategory = CategoryUtils.matchesCategory(app, category);
 
       final matchesPlatform = platform == null ||
           platform == 'All Platforms' ||

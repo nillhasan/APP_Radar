@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_service.dart';
+import '../../core/constants/app_constants.dart';
 
 class CategoryPickerModal extends StatefulWidget {
   final String initialCategory;
@@ -25,55 +26,8 @@ class CategoryPickerModal extends StatefulWidget {
 class _CategoryPickerModalState extends State<CategoryPickerModal> {
   late String _currentSelected;
 
-  static const List<String> applicationCategories = [
-    'Books',
-    'Business',
-    'Catalogs',
-    'Developer Tools',
-    'Education',
-    'Entertainment',
-    'Finance',
-    'Food & Drink',
-    'Graphics & Design',
-    'Health & Fitness',
-    'Lifestyle',
-    'Magazines & Newspapers',
-    'Medical',
-    'Music',
-    'Navigation',
-    'News',
-    'Photo & Video',
-    'Productivity',
-    'Reference',
-    'Shopping',
-    'Social Networking',
-    'Sports',
-    'Stickers',
-    'Travel',
-    'Utilities',
-    'Weather',
-  ];
-
-  static const List<String> gameCategories = [
-    'Action',
-    'Adventure',
-    'Casual',
-    'Board',
-    'Card',
-    'Casino',
-    'Dice',
-    'Educational',
-    'Family',
-    'Music',
-    'Puzzle',
-    'Racing',
-    'Role Playing',
-    'Simulation',
-    'Sports',
-    'Strategy',
-    'Trivia',
-    'Word',
-  ];
+  static const List<String> applicationCategories = AppConstants.applicationCategories;
+  static const List<String> gameCategories = AppConstants.gameCategories;
 
   @override
   void initState() {

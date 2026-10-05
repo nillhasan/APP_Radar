@@ -5,6 +5,7 @@ import '../../data/mock/mock_data.dart';
 import '../../data/models/app_item.dart';
 import '../app_icon_widget.dart';
 import 'category_picker_modal.dart';
+import '../../core/constants/category_utils.dart';
 
 class TopChartsLeaderboard extends StatefulWidget {
   final List<AppItem> apps;
@@ -71,15 +72,7 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
     return combined;
   }
 
-  static bool _isGameCategory(String cat) {
-    const genres = [
-      'game', 'action', 'adventure', 'casual', 'board', 'card', 'casino', 'dice',
-      'educational', 'family', 'puzzle', 'racing', 'role playing', 'simulation',
-      'sports', 'strategy', 'trivia', 'word'
-    ];
-    final lower = cat.toLowerCase();
-    return genres.any((g) => lower.contains(g));
-  }
+  static bool _isGameCategory(String cat) => CategoryUtils.isGameCategory(cat);
 
   double _deriveRegionalShare(AppItem app, String region) {
     if (region == 'Global') return 1.0;
@@ -181,29 +174,8 @@ class _TopChartsLeaderboardState extends State<TopChartsLeaderboard> {
         if (!platformMatch) return false;
       }
 
-      if (_selectedCategory != 'All Categories') {
-        final selected = _selectedCategory.toLowerCase();
-        final appCat = app.category.toLowerCase();
-        final isGame = appCat.contains('game') ||
-            _isGameCategory(appCat) ||
-            app.coreFeatures.any((f) => _isGameCategory(f)) ||
-            _isGameCategory(app.notes);
-
-        if (selected == 'games') {
-          if (!isGame) return false;
-        } else if (selected == 'applications') {
-          if (isGame) return false;
-        } else {
-          // Specific subcategory (e.g. Action, Puzzle, Board, Productivity, Finance, etc.)
-          final matchesCat = appCat.contains(selected) || selected.contains(appCat);
-          final matchesFeatures = app.coreFeatures.any((f) => f.toLowerCase().contains(selected));
-          final matchesDesc = app.description.toLowerCase().contains(selected) ||
-              app.whatItDoes.toLowerCase().contains(selected) ||
-              app.notes.toLowerCase().contains(selected);
-          if (!matchesCat && !matchesFeatures && !matchesDesc) {
-            return false;
-          }
-        }
+      if (!CategoryUtils.matchesCategory(app, _selectedCategory)) {
+        return false;
       }
 
       return true;

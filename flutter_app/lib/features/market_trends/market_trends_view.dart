@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/category_utils.dart';
+import '../../widgets/top_charts/category_picker_modal.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_item.dart';
 import '../../data/models/market_trend.dart';
@@ -120,10 +122,7 @@ class _MarketTrendsViewState extends State<MarketTrendsView> {
             final query = _searchController.text.trim().toLowerCase();
 
             var filteredTrends = allTrends.where((t) {
-              final catMatch = _selectedCategory == 'All Categories' ||
-                  _selectedCategory == 'All' ||
-                  t.category.toLowerCase().contains(_selectedCategory.toLowerCase()) ||
-                  _selectedCategory.toLowerCase().contains(t.category.toLowerCase());
+              final catMatch = CategoryUtils.matchesTrendCategory(t.category, _selectedCategory);
               if (!catMatch) return false;
               if (query.isEmpty) return true;
               return t.category.toLowerCase().contains(query) ||
@@ -140,10 +139,7 @@ class _MarketTrendsViewState extends State<MarketTrendsView> {
             }
 
             var filteredKeywords = allKeywords.where((k) {
-              final catMatch = _selectedCategory == 'All Categories' ||
-                  _selectedCategory == 'All' ||
-                  k.category.toLowerCase().contains(_selectedCategory.toLowerCase()) ||
-                  _selectedCategory.toLowerCase().contains(k.category.toLowerCase());
+              final catMatch = CategoryUtils.matchesTrendCategory(k.category, _selectedCategory);
               if (!catMatch) return false;
               if (query.isEmpty) return true;
               return k.keyword.toLowerCase().contains(query) ||
@@ -208,30 +204,59 @@ class _MarketTrendsViewState extends State<MarketTrendsView> {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        // Category Filter Dropdown
-        Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedCategory,
-              icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              items: AppConstants.categories.map((c) {
-                return DropdownMenuItem(value: c, child: Text(c));
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedCategory = val;
-                  });
-                }
-              },
+        // Category Filter with modal picker
+        InkWell(
+          onTap: () async {
+            final val = await CategoryPickerModal.show(context, initialCategory: _selectedCategory);
+            if (val != null) {
+              setState(() {
+                _selectedCategory = val;
+              });
+            }
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CategoryUtils.isGameCategory(_selectedCategory)
+                    ? AppColors.accent.withValues(alpha: 0.6)
+                    : AppColors.border,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CategoryUtils.isGameCategory(_selectedCategory)
+                      ? Icons.sports_esports_outlined
+                      : Icons.category_outlined,
+                  size: 15,
+                  color: CategoryUtils.isGameCategory(_selectedCategory)
+                      ? AppColors.accent
+                      : AppColors.primary,
+                ),
+                const SizedBox(width: 6),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(
+                    _selectedCategory,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CategoryUtils.isGameCategory(_selectedCategory)
+                          ? AppColors.accent
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+              ],
             ),
           ),
         ),

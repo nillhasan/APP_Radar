@@ -59,6 +59,7 @@ class AppItem {
   final int rankDelta;
   final Map<String, double>? regionalBreakdown;
   final List<String> competitorIds;
+  final String? subcategory;
 
   const AppItem({
     required this.id,
@@ -96,6 +97,7 @@ class AppItem {
     this.rankDelta = 0,
     this.regionalBreakdown,
     this.competitorIds = const [],
+    this.subcategory,
   });
 
   AppItem copyWith({
@@ -109,6 +111,7 @@ class AppItem {
     int? rankDelta,
     Map<String, double>? regionalBreakdown,
     List<String>? competitorIds,
+    String? subcategory,
   }) {
     return AppItem(
       id: id,
@@ -146,6 +149,7 @@ class AppItem {
       rankDelta: rankDelta ?? this.rankDelta,
       regionalBreakdown: regionalBreakdown ?? this.regionalBreakdown,
       competitorIds: competitorIds ?? this.competitorIds,
+      subcategory: subcategory ?? this.subcategory,
     );
   }
 
